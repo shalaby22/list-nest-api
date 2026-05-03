@@ -25,6 +25,7 @@ import { UserType } from '../utils/enums';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { User } from './auth/decorators/user.decorator';
 import type { JwtPayloadType } from '../utils/types';
+import { GoogleAuthGuard } from './auth/guards/oAuth.guard';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller('api/users')
@@ -47,6 +48,20 @@ export class UsersController {
   @Post('auth/login')
   public login(@Request() req: RequestWithWholeUser) {
     return this.usersService.login(req.user);
+  }
+
+  //Get :~/api/users/auth/google/login
+  @UseGuards(GoogleAuthGuard)
+  @Get('auth/google/login')
+  public googleLogin() {
+    return 'done google/login';
+  }
+
+  //Get :~/api/users/auth/google/callback
+  @UseGuards(GoogleAuthGuard)
+  @Get('auth/google/callback')
+  public googleLoginCallback(@Request() req: RequestWithWholeUser) {
+    return req.user;
   }
 
   /////////////////////////////////////
