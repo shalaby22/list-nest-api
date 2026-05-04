@@ -43,4 +43,8 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  //not column
+  @Exclude()
+  refreshToken?: string;
 }

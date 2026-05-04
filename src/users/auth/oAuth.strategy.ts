@@ -53,6 +53,5 @@ export class googleStrategy extends PassportStrategy(Strategy) {
       return user;
     }
   }
-  //todo refresh token
   //todo edit phone
 }

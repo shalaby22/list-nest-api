@@ -1,10 +1,17 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { JwtPayloadType } from './../../utils/types';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { RegisterDto } from '../dtos/register.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { RefreshTokenStoreProvider } from './RefreshToken.provider';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthProvider {
@@ -12,6 +19,7 @@ export class AuthProvider {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
     private jwtService: JwtService,
+    private refreshTokenStoreProvider: RefreshTokenStoreProvider,
   ) {}
 
   /**
@@ -38,6 +46,7 @@ export class AuthProvider {
     });
     const resultUser = await this.usersRepository.save(user);
     const userWithToken = this.login(resultUser);
+
     return userWithToken;
   }
 
@@ -47,9 +56,57 @@ export class AuthProvider {
    * @param user
    * @returns user with token
    */
-  login(user: User) {
+  async login(user: User) {
+    const payload = { id: user.id, userType: user.userType };
+    const refreshToken = await this.makeRefreshToken(payload);
+    user['access_token'] = this.jwtService.sign(payload);
+    user['refreshToken'] = refreshToken;
+    return user;
+  }
+
+  /**
+   * refresh access token
+   * @param refreshToken
+   * @returns user with access token
+   */
+  async refreshAccessToken(refreshToken: string) {
+    if (!refreshToken)
+      throw new UnauthorizedException('there is no refresh token');
+    const userId =
+      await this.refreshTokenStoreProvider.isRefreshTokenValid(refreshToken);
+
+    if (!userId) {
+      throw new UnauthorizedException('Session expired or revoked');
+    }
+
+    const user = await this.usersRepository.findOne({
+      where: { id: +userId },
+    });
+
+    if (!user) throw new UnauthorizedException('not found this user');
     const payload = { id: user.id, userType: user.userType };
     user['access_token'] = this.jwtService.sign(payload);
+
     return user;
+  }
+
+  private async makeRefreshToken(payload: JwtPayloadType) {
+    const refreshToken = crypto.randomBytes(32).toString('hex');
+    await this.refreshTokenStoreProvider.storeRefreshToken(
+      payload.id,
+      refreshToken,
+    );
+    return refreshToken;
+  }
+
+  deleteRefreshToken(userId: number, refreshToken: string) {
+    return this.refreshTokenStoreProvider.deleteRefreshToken(
+      userId,
+      refreshToken,
+    );
+  }
+
+  deleteAllSessions(userId: number) {
+    return this.refreshTokenStoreProvider.deleteAllSessions(userId);
   }
 }

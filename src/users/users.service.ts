@@ -20,6 +20,18 @@ export class UsersService {
     return this.authProvider.login(user);
   }
 
+  refreshAccessToken(refreshToken: string) {
+    return this.authProvider.refreshAccessToken(refreshToken);
+  }
+
+  logout(userId: number, refreshToken: string) {
+    return this.authProvider.deleteRefreshToken(userId, refreshToken);
+  }
+
+  logoutFromAllDevices(userId: number) {
+    return this.authProvider.deleteAllSessions(userId);
+  }
+
   getAllUsers() {
     return this.usersProvider.getAllUsers();
   }

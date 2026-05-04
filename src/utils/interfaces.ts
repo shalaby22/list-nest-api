@@ -7,4 +7,9 @@ export interface RequestWithUserPayload extends Request {
 
 export interface RequestWithWholeUser extends Request {
   user: User;
+  cookies: { refresh_token: string };
+}
+
+export interface RequestWithCookies extends Request {
+  cookies: { refresh_token: string };
 }

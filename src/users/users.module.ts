@@ -11,6 +11,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './auth/jwt.strategy';
 import { googleStrategy } from './auth/oAuth.strategy';
+import { Redis } from 'ioredis';
+import { REDIS_CLIENT } from '../utils/constants';
+import { RefreshTokenStoreProvider } from './auth/RefreshToken.provider';
+
+import type { StringValue } from 'ms';
 
 @Module({
   controllers: [UsersController],
@@ -18,9 +23,14 @@ import { googleStrategy } from './auth/oAuth.strategy';
     TypeOrmModule.forFeature([User]),
     PassportModule,
     JwtModule.registerAsync({
+      global: true,
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '5d' },
+        secret: configService.get<string>('JWT_ACCESS_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>(
+            'JWT_ACCESS_EXPIRATION',
+          ) as StringValue,
+        },
       }),
       inject: [ConfigService],
     }),
@@ -31,7 +41,20 @@ import { googleStrategy } from './auth/oAuth.strategy';
     AuthProvider,
     LocalStrategy,
     JwtStrategy,
+    RefreshTokenStoreProvider,
     googleStrategy,
+    {
+      provide: REDIS_CLIENT,
+      useFactory: (configService: ConfigService) => {
+        return new Redis({
+          host: configService.get<string>('REDIS_HOST'),
+          port: configService.get<number>('REDIS_PORT'),
+          //add password here todo in production
+        });
+      },
+      inject: [ConfigService],
+    },
   ],
+  exports: [REDIS_CLIENT],
 })
 export class UsersModule {}

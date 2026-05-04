@@ -9,12 +9,14 @@ import * as bcrypt from 'bcrypt';
 import { User } from '../users.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { RefreshTokenStoreProvider } from './RefreshToken.provider';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    private refreshTokenStoreProvider: RefreshTokenStoreProvider,
   ) {
     super({ usernameField: 'email' });
   }
@@ -32,6 +34,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     const user = await this.usersRepository.findOne({
       where: { email: email },
     });
+
     if (user) {
       const isMatch = await bcrypt.compare(hashedPassword, user.password);
       if (!isMatch) {
