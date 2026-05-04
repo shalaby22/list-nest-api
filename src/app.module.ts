@@ -5,6 +5,8 @@ import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './users/users.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { CategoriesModule } from './categories/categories.module';
+import { Category } from './categories/entities/category.entity';
 
 @Module({
   imports: [
@@ -21,12 +23,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         username: configService.get('DATABASE_USER'),
         password: configService.get('DATABASE_PASSWORD'),
         database: configService.get('DATABASE_NAME'),
-        entities: [User],
-        //warning from synchronize only for development
+        entities: [User, Category],
+        //warning from synchronize only for development todo
         synchronize: true,
       }),
       inject: [ConfigService],
     }),
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

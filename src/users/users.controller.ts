@@ -95,6 +95,7 @@ export class UsersController {
   }
 
   //post :~/api/users/auth/logout
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   @Post('auth/logout')
   async logout(
@@ -110,6 +111,7 @@ export class UsersController {
   }
 
   //post :~/api/users/auth/logout-all
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   @Post('auth/logout-all')
   async logoutAllDevices(
