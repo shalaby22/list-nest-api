@@ -16,10 +16,12 @@ import { REDIS_CLIENT } from '../utils/constants';
 import { RefreshTokenStoreProvider } from './auth/RefreshToken.provider';
 
 import type { StringValue } from 'ms';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 
 @Module({
   controllers: [UsersController],
   imports: [
+    CloudinaryModule,
     TypeOrmModule.forFeature([User]),
     PassportModule,
     JwtModule.registerAsync({
@@ -55,6 +57,6 @@ import type { StringValue } from 'ms';
       inject: [ConfigService],
     },
   ],
-  exports: [REDIS_CLIENT],
+  exports: [REDIS_CLIENT, UsersService],
 })
 export class UsersModule {}

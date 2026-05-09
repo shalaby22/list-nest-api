@@ -54,4 +54,5 @@ export class googleStrategy extends PassportStrategy(Strategy) {
     }
   }
   //todo edit phone
+  //add verify email and forgot password
 }

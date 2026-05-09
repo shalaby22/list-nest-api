@@ -1,0 +1,69 @@
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import type { Point } from 'typeorm';
+import { User } from '../../users/users.entity';
+import { Category } from '../../categories/entities/category.entity';
+import { Location } from './location.entity';
+import { ImageItem } from './image-item.entity';
+import { ItemStatusType } from '../../utils/enums';
+
+@Entity()
+export class Item {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column()
+  title: string;
+
+  @Column()
+  description: string;
+
+  @Column({ type: 'enum', enum: ItemStatusType, default: ItemStatusType.DRAFT })
+  status: ItemStatusType;
+
+  @Column()
+  price: number;
+
+  @Index({ spatial: true })
+  @Column({
+    type: 'geography',
+    spatialFeatureType: 'Point',
+    srid: 4326,
+    //todo make nullable false after making sure it works
+    nullable: true,
+  })
+  point: Point;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  //relations
+  @ManyToOne(() => User, (user) => user.items, {
+    eager: true,
+    onDelete: 'CASCADE',
+  })
+  user: User;
+
+  @ManyToOne(() => Category, (category) => category.items, { eager: true })
+  category: Category;
+
+  @ManyToOne(() => Location, (location) => location.items, { eager: true })
+  location: Location;
+
+  @OneToMany(() => ImageItem, (imageItem) => imageItem.item, {
+    eager: true,
+    cascade: ['insert'],
+  })
+  images: ImageItem[];
+}

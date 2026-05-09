@@ -8,10 +8,12 @@ import { User } from './users.entity';
 import { Repository } from 'typeorm';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import * as bcrypt from 'bcrypt';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Injectable()
 export class UsersProvider {
   constructor(
+    private cloudinaryService: CloudinaryService,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
   ) {}
@@ -70,6 +72,7 @@ export class UsersProvider {
    */
   public async deleteUserBy(id: number) {
     const user = await this.getUserBy(id);
+    const _deleted = this.cloudinaryService.deleteFolder(`items/user_${id}`);
     await this.usersRepository.remove(user);
     return 'deleted successfully';
   }

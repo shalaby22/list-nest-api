@@ -48,3 +48,4 @@ export class UsersService {
     return this.usersProvider.deleteUserBy(id);
   }
 }
+

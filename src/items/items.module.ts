@@ -1,0 +1,24 @@
+import { CategoriesModule } from './../categories/categories.module';
+import { Module } from '@nestjs/common';
+import { ItemsService } from './items.service';
+import { ItemsController } from './items.controller';
+import { Item } from './entities/item.entity';
+import { ImageItem } from './entities/image-item.entity';
+import { Location } from './entities/location.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UsersModule } from '../users/users.module';
+import { HttpModule } from '@nestjs/axios';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
+
+@Module({
+  controllers: [ItemsController],
+  providers: [ItemsService],
+  imports: [
+    TypeOrmModule.forFeature([Item, ImageItem, Location]),
+    CategoriesModule,
+    UsersModule,
+    HttpModule,
+    CloudinaryModule,
+  ],
+})
+export class ItemsModule {}

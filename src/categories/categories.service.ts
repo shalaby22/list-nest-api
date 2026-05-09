@@ -92,6 +92,7 @@ export class CategoriesService {
   }
   async remove(id: number) {
     const category = await this.findOne(id);
+    //todo بحث عن ايتمز بالكاتيجوري هنا ولو موجود امنع المسح
     await this.categoriesRepository.remove(category);
     return `removed successfully`;
   }

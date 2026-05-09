@@ -13,3 +13,16 @@ export interface RequestWithWholeUser extends Request {
 export interface RequestWithCookies extends Request {
   cookies: { refresh_token: string };
 }
+
+export interface MapTilerFeature {
+  id: string;
+  text: string;
+  place_name: string;
+  place_type: string[];
+}
+
+export interface MapTilerResponse {
+  type: string;
+  features: MapTilerFeature[];
+  query: number[];
+}

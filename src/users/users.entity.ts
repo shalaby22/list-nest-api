@@ -4,9 +4,11 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { UserType } from '../utils/enums';
 import { Exclude } from 'class-transformer';
+import { Item } from '../items/entities/item.entity';
 
 @Entity()
 export class User {
@@ -43,6 +45,10 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  //relations
+  @OneToMany(() => Item, (item) => item.user)
+  items: Item[];
 
   //not column
   @Exclude()
