@@ -31,6 +31,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
         entities: [User, Category, Item, ImageItem, Location],
         //warning from synchronize only for development todo
         //todo add PostGIS to postgres in migrations
+        //installExtensions - A boolean to control whether to install necessary postgres extensions automatically or not (default: true)
         synchronize: true,
       }),
       inject: [ConfigService],
@@ -43,4 +44,3 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
   providers: [AppService],
 })
 export class AppModule {}
-

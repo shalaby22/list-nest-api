@@ -1,4 +1,10 @@
-import { ArrayMinSize, IsArray, IsIn, IsOptional, IsString } from 'class-validator';
+import {
+  ArrayMinSize,
+  IsArray,
+  IsIn,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { ItemStatusType } from '../../utils/enums';
 
 export class AddImagesToItemDto {

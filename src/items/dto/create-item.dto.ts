@@ -1,11 +1,4 @@
-import {
-  IsArray,
-  IsNumber,
-  IsOptional,
-  IsString,
-  Min,
-  MinLength,
-} from 'class-validator';
+import { IsBoolean, IsNumber, IsString, Min, MinLength } from 'class-validator';
 
 export class CreateItemDto {
   @IsString()
@@ -28,4 +21,7 @@ export class CreateItemDto {
 
   @IsNumber()
   categoryId: number;
+
+  @IsBoolean()
+  wantSignature: boolean;
 }

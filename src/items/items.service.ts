@@ -15,12 +15,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CategoriesService } from '../categories/categories.service';
 import { Location } from './entities/location.entity';
 import { JwtPayloadType } from '../utils/types';
-import { ItemStatusType, UserType } from '../utils/enums';
+import { ItemStatusType, SortingType, UserType } from '../utils/enums';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { MapTilerResponse } from '../utils/interfaces';
 import { AddImagesToItemDto } from './dto/add-Images.dto';
 import { ImageItem } from './entities/image-item.entity';
+import { DEFAULT_NEARBY_DISTANCE, ITEMS_PER_PAGE } from '../utils/constants';
+import { FindItemsDto } from './dto/find-items-query.dto';
 
 @Injectable()
 export class ItemsService {
@@ -71,21 +73,120 @@ export class ItemsService {
     };
     newItem.point = pointObject;
 
-    //save as a draft (default)
+    //want image signature
+    if (!createItemDto.wantSignature) {
+      newItem.status = ItemStatusType.ACTIVE;
+    }
     newItem = await this.itemsRepository.save(newItem);
+
+    if (createItemDto.wantSignature) {
+      //save as a draft (default)
+      const signature = this.getSignature(newItem.id, userId);
+      newItem['signature'] = signature;
+    }
     return newItem;
   }
 
-  async findAll() {
-    //todo pagination and filter
-    const items = await this.itemsRepository.find({});
-    return items;
+  async findAll(findItemsDto: FindItemsDto) {
+    const sqlLine = this.itemsRepository
+      .createQueryBuilder('item')
+      .where('item.status = :active', { active: 'active' })
+      .leftJoinAndSelect('item.category', 'category')
+      .leftJoinAndSelect('category.parentCategory', 'parentCategory')
+      .leftJoinAndSelect('item.user', 'user')
+      .leftJoinAndSelect('item.location', 'location')
+      .leftJoinAndSelect('item.images', 'imageItem')
+      .orderBy('item_id', 'DESC');
+
+    //for point
+    if (findItemsDto.lat && findItemsDto.lng) {
+      const userLocation = `ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography`;
+      const distanceInMeters =
+        (findItemsDto.distance ?? DEFAULT_NEARBY_DISTANCE) * 1000;
+
+      sqlLine
+        .andWhere(`ST_DWithin(item.point, ${userLocation}, :radius)`)
+        .addSelect(`ST_Distance(item.point, ${userLocation})`, 'distance')
+        .orderBy('distance', 'ASC')
+        .setParameters({
+          lng: findItemsDto.lng,
+          lat: findItemsDto.lat,
+          radius: distanceInMeters,
+        });
+    }
+    //for sorting
+    if (findItemsDto.sorting) {
+      if (findItemsDto.sorting === SortingType.CREATION) {
+        sqlLine.orderBy('item_id', 'DESC');
+      } else if (findItemsDto.sorting === SortingType.ASC_PRICE) {
+        sqlLine.orderBy('item.price', 'ASC');
+      } else if (findItemsDto.sorting === SortingType.DESC_PRICE) {
+        sqlLine.orderBy('item.price', 'DESC');
+      }
+    }
+
+    //for categories
+    if (findItemsDto.category) {
+      const category = await this.categoriesService.findOne(
+        findItemsDto.category,
+      );
+      if (category.parentCategory) {
+        sqlLine.andWhere('category.id = :id', {
+          id: findItemsDto.category,
+        });
+      } else {
+        sqlLine.andWhere('parentCategory.id = :id', {
+          id: findItemsDto.category,
+        });
+      }
+    }
+
+    //اضافة فلتر اللوكيشن هنا مع تغيير الانتنيبتي واضافة انتيني بلد و ريجون وبلايس واسال جيمناي الاول برضو
+
+    //for pagination
+    const totalItems = await sqlLine.getCount();
+    const limit = ITEMS_PER_PAGE;
+    const skip = limit * ((findItemsDto.page ?? 1) - 1);
+    sqlLine.skip(skip).take(limit);
+
+    //execute query
+    let items = {};
+    if (findItemsDto.lat && findItemsDto.lng) {
+      const { entities, raw } = await sqlLine.getRawAndEntities();
+
+      items = entities.map((item) => {
+        const rawData = raw.find((r) => r.item_id === item.id);
+        return {
+          ...item,
+          distance: Math.round(rawData.distance) / 1000,
+        };
+      });
+    } else {
+      items = await sqlLine.getMany();
+    }
+
+    return { items, totalItems };
+
+    // else {
+    //   items = await this.itemsRepository.find({
+    //     where: { status: ItemStatusType.ACTIVE },
+    //     skip: 0,
+    //     take: 10,
+    //     relations: { category: { parentCategory: true } },
+    //   });
+    // }
+
+    return 'items';
   }
+
   //todo get all items included expired for admins
   //todo get my items included expired for user
 
   async findOne(id: number) {
-    const item = await this.itemsRepository.findOneBy({ id });
+    const item = await this.itemsRepository.findOne({
+      where: { id },
+      relations: { category: { parentCategory: true } },
+    });
     if (!item) throw new NotFoundException('there is no item with that id');
     return item;
   }
@@ -154,6 +255,10 @@ export class ItemsService {
         }
       }
     }
+    //if want signature
+    if (updateItemDto.wantSignature) {
+      item['signature'] = this.getSignature(item.id, item.user.id);
+    }
 
     item = await this.itemsRepository.save(item);
     return item;
@@ -175,13 +280,7 @@ export class ItemsService {
     return 'deleted successfully';
   }
 
-  async getSignature(itemId: number, userId: number) {
-    const item = await this.findOne(itemId);
-    if (item.user.id !== userId) {
-      throw new ForbiddenException(
-        'you are not allowed to add images to another one item',
-      );
-    }
+  getSignature(itemId: number, userId: number) {
     return this.cloudinaryService.generateSignature(itemId, userId);
   }
 
@@ -278,4 +377,3 @@ export class ItemsService {
 //todo add cron job to delete unused images معتقدش هنحتاجها
 //todo prevent delete category if have items
 //todo ترتيب السيرفيس والكونترولرز للبرنامج كله
-//todo add relations catogery parent when finding items
