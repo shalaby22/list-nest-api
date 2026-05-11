@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -8,10 +10,14 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from './entities/category.entity';
 import { IsNull, Repository } from 'typeorm';
+import { FindCategoryItemsDto } from './dto/find-category-items-query.dto';
+import { ItemsService } from '../items/items.service';
 
 @Injectable()
 export class CategoriesService {
   constructor(
+    @Inject(forwardRef(() => ItemsService))
+    private itemsService: ItemsService,
     @InjectRepository(Category)
     private categoriesRepository: Repository<Category>,
   ) {}
@@ -92,9 +98,25 @@ export class CategoriesService {
   }
   async remove(id: number) {
     const category = await this.findOne(id);
-    //todo بحث عن ايتمز بالكاتيجوري هنا ولو موجود امنع المسح
+    const items = await this.itemsService.findAllForAdmins({ category: id });
+
+    if (items.totalItems) {
+      console.log(items);
+      throw new BadRequestException(
+        'there are items in that category you have delete them first',
+      );
+    }
     await this.categoriesRepository.remove(category);
     return `removed successfully`;
+  }
+
+  async findOneWithItems(
+    id: number,
+    findCategoryItemsDto: FindCategoryItemsDto,
+  ) {
+    const category = await this.findOne(id);
+    findCategoryItemsDto['category'] = category.id;
+    return this.itemsService.findAll(findCategoryItemsDto);
   }
 
   private async CanCategoryBeParent(categoryId: number) {

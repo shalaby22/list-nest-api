@@ -4,6 +4,8 @@ import { UsersService } from './../users/users.service';
 import {
   BadRequestException,
   ForbiddenException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -12,26 +14,28 @@ import { UpdateItemDto } from './dto/update-item.dto';
 import { Item } from './entities/item.entity';
 import { Point, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CategoriesService } from '../categories/categories.service';
 import { City } from './entities/city.entity';
 import { JwtPayloadType } from '../utils/types';
 import { ItemStatusType, SortingType, UserType } from '../utils/enums';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
-import { MapTilerResponse } from '../utils/interfaces';
+import { MapTilerResponse, RawItemData } from '../utils/interfaces';
 import { AddImagesToItemDto } from './dto/add-Images.dto';
 import { ImageItem } from './entities/image-item.entity';
 import { DEFAULT_NEARBY_DISTANCE, ITEMS_PER_PAGE } from '../utils/constants';
 import { FindItemsDto } from './dto/find-items-query.dto';
 import { Region } from './entities/region.entity';
 import { Country } from './entities/country.entity';
+import { CategoriesService } from '../categories/categories.service';
 
 @Injectable()
 export class ItemsService {
   constructor(
+    @Inject(forwardRef(() => CategoriesService))
+    private categoriesService: CategoriesService,
+
     private configService: ConfigService,
     private readonly httpService: HttpService,
-    private categoriesService: CategoriesService,
     private usersService: UsersService,
     private cloudinaryService: CloudinaryService,
     @InjectRepository(Item)
@@ -116,6 +120,31 @@ export class ItemsService {
     if (isActiveOnly) {
       sqlLine.where('item.status = :active', { active: 'active' });
     }
+
+    //for search
+
+    if (findItemsDto.search) {
+      sqlLine
+        .addSelect(
+          `
+    (
+      ts_rank(item."searchVector", plainto_tsquery('english', :searchTerm)) +
+      similarity(item.title, :searchTerm)
+    )
+  `,
+          'score',
+        )
+        .andWhere(
+          `(
+    (item."searchVector" @@ plainto_tsquery('english', :searchTerm))
+    OR
+    (item.title % :searchTerm)
+        )
+  `,
+          { searchTerm: findItemsDto.search },
+        )
+        .setParameter('searchTerm', findItemsDto.search);
+    }
     //for point
     if (findItemsDto.lat && findItemsDto.lng) {
       const userLocation = `ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography`;
@@ -150,6 +179,11 @@ export class ItemsService {
         sqlLine.orderBy('item.price', 'ASC');
       } else if (findItemsDto.sorting === SortingType.DESC_PRICE) {
         sqlLine.orderBy('item.price', 'DESC');
+      } else if (
+        findItemsDto.sorting === SortingType.SEARCH_SCORE &&
+        findItemsDto.search
+      ) {
+        sqlLine.orderBy('score', 'DESC');
       }
     }
 
@@ -215,24 +249,43 @@ export class ItemsService {
 
     //execute query
     let items = {};
+    // console.log(sqlLine.getQuery());
+
     if (findItemsDto.lat && findItemsDto.lng) {
       const { entities, raw } = await sqlLine.getRawAndEntities();
+      const distanceMap = new Map();
+      raw.forEach((ele: RawItemData) => {
+        distanceMap.set(ele.item_id, +ele.distance);
+      });
 
       items = entities.map((item) => {
-        const rawData = raw.find((r) => r.item_id === item.id);
+        const distance: number = distanceMap.get(item.id) as number;
         return {
           ...item,
-          distance: Math.round(rawData.distance) / 1000,
+          distance: Math.round(distance) / 1000,
         };
       });
     } else {
       items = await sqlLine.getMany();
     }
-
     return { items, totalItems };
+    //  //execute query
+    //     let items = {};
+    //     if (findItemsDto.lat && findItemsDto.lng) {
+    //       const { entities, raw } = await sqlLine.getRawAndEntities();
+    //       items = entities.map((item) => {
+    //         const rawData = raw.find((r) => r.item_id === item.id);
+    //         return {
+    //           ...item,
+    //           distance: Math.round(rawData.distance) / 1000,
+    //         };
+    //       });
+    //     } else {
+    //       items = await sqlLine.getMany();
+    //     }
+    //         return { items, totalItems };
   }
 
-  //todo get all items included expired for admins
   async findItemsByUser(userId: number, page: number) {
     const user = await this.usersService.getUserBy(userId);
 
@@ -247,7 +300,6 @@ export class ItemsService {
     });
     return { items: items[0], totalItems: items[1] };
   }
-  //todo get my items included expired for user
 
   async findOne(id: number) {
     const item = await this.itemsRepository.findOne({
@@ -464,8 +516,6 @@ export class ItemsService {
   }
 }
 
-//todo add filter with place or country or region
 //todo add cron job to expire items
 //todo add cron job to delete unused images معتقدش هنحتاجها
-//todo prevent delete category if have items
 //todo ترتيب السيرفيس والكونترولرز للبرنامج كله

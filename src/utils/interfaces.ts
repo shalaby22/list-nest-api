@@ -26,3 +26,8 @@ export interface MapTilerResponse {
   features: MapTilerFeature[];
   query: number[];
 }
+
+export interface RawItemData {
+  item_id: number;
+  distance: number;
+}

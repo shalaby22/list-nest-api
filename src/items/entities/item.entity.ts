@@ -48,6 +48,18 @@ export class Item {
   @UpdateDateColumn()
   updatedAt: Date;
 
+  @Column({
+    type: 'tsvector',
+    nullable: true,
+    select: false,
+    generatedType: 'STORED',
+    asExpression: `
+      setweight(to_tsvector('english', coalesce(title, '')), 'A') || 
+      setweight(to_tsvector('english', coalesce(description, '')), 'B')
+    `,
+  })
+  searchVector: string;
+
   //relations
   @ManyToOne(() => User, (user) => user.items, {
     eager: true,

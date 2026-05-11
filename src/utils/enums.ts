@@ -15,4 +15,5 @@ export enum SortingType {
   DESC_PRICE = 'desc-price',
   ASC_PRICE = 'asc-price',
   DISTANCE = 'distance',
+  SEARCH_SCORE = 'search-score',
 }

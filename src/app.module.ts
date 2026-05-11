@@ -33,6 +33,11 @@ import { Region } from './items/entities/region.entity';
         entities: [User, Category, Item, ImageItem, City, Country, Region],
         //warning from synchronize only for development todo
         //todo add PostGIS to postgres in migrations
+        //todo add pg_trgm to postgres in migrations
+        //todo add two indices in migration
+        // CREATE INDEX idx_items_search ON public.item USING GIN("searchVector");
+        //CREATE INDEX idx_items_title_trgm ON public.item USING GIN(title gin_trgm_ops);
+        //add another indices على زوقك
         //installExtensions - A boolean to control whether to install necessary postgres extensions automatically or not (default: true)
         synchronize: true,
       }),

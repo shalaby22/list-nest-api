@@ -1,5 +1,5 @@
 import { CategoriesModule } from './../categories/categories.module';
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ItemsService } from './items.service';
 import { ItemsController } from './items.controller';
 import { Item } from './entities/item.entity';
@@ -17,10 +17,11 @@ import { Region } from './entities/region.entity';
   providers: [ItemsService],
   imports: [
     TypeOrmModule.forFeature([Item, ImageItem, Country, City, Region]),
-    CategoriesModule,
+    forwardRef(() => CategoriesModule),
     UsersModule,
     HttpModule,
     CloudinaryModule,
   ],
+  exports: [ItemsService],
 })
 export class ItemsModule {}
