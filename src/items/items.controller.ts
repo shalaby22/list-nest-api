@@ -11,11 +11,7 @@ import {
   ClassSerializerInterceptor,
   UseInterceptors,
   Patch,
-  ParseArrayPipe,
   Query,
-  UsePipes,
-  ValidationPipe,
-  ParseFloatPipe,
 } from '@nestjs/common';
 import { ItemsService } from './items.service';
 import { CreateItemDto } from './dto/create-item.dto';
@@ -23,9 +19,11 @@ import { UpdateItemDto } from './dto/update-item.dto';
 import { JwtAuthGuard } from '../users/auth/guards/jwt-auth.guard';
 import type { JwtPayloadType } from '../utils/types';
 import { User } from '../users/auth/decorators/user.decorator';
-import { v2 as cloudinary } from 'cloudinary';
 import { AddImagesToItemDto } from './dto/add-Images.dto';
 import { FindItemsDto } from './dto/find-items-query.dto';
+import { Roles } from '../users/auth/decorators/roles.decorator';
+import { UserType } from '../utils/enums';
+import { RolesGuard } from '../users/auth/guards/roles.guard';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller('api/items')
@@ -66,39 +64,29 @@ export class ItemsController {
     );
   }
 
-  // @Get()
-  // // @UsePipes(new ValidationPipe({ transform: true }))
-  // findAll(
-  //   @Query('page') page: number,
-  //   @Query('sorting') sorting: string,
-  //   @Query('search') search: string,
-  //   @Query('category') category: string,
-  //   @Query('lat', ParseFloatPipe) lat: number,
-  //   @Query('lng') lng: number,
-  //   @Query('distance') distance: number,
-  //   @Query('country') country: string,
-  //   @Query('region') region: string,
-  //   @Query('place') place: string,
-  // ) {
-  //   console.log(typeof lat);
-  //   console.log(lat);
-  //   return this.itemsService.findAll(
-  //     page,
-  //     sorting,
-  //     search,
-  //     category,
-  //     lat,
-  //     lng,
-  //     distance,
-  //     country,
-  //     region,
-  //     place,
-  //   );
-  // }
-
   @Get()
   findAll(@Query() findItemsDto: FindItemsDto) {
     return this.itemsService.findAll(findItemsDto);
+  }
+
+  @Get('admin')
+  @Roles([UserType.ADMIN])
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  findAllForAdmins(@Query() findItemsDto: FindItemsDto) {
+    return this.itemsService.findAllForAdmins(findItemsDto);
+  }
+
+  @Get('user/:userId')
+  findItemsByUser(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query('page', ParseIntPipe) page: number,
+  ) {
+    return this.itemsService.findItemsByUser(userId, page);
+  }
+
+  @Get('locations')
+  findAllLocations() {
+    return this.itemsService.getAllLocations();
   }
 
   @Get(':id')

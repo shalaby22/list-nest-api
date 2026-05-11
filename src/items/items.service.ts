@@ -13,7 +13,7 @@ import { Item } from './entities/item.entity';
 import { Point, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CategoriesService } from '../categories/categories.service';
-import { Location } from './entities/location.entity';
+import { City } from './entities/city.entity';
 import { JwtPayloadType } from '../utils/types';
 import { ItemStatusType, SortingType, UserType } from '../utils/enums';
 import { HttpService } from '@nestjs/axios';
@@ -23,6 +23,8 @@ import { AddImagesToItemDto } from './dto/add-Images.dto';
 import { ImageItem } from './entities/image-item.entity';
 import { DEFAULT_NEARBY_DISTANCE, ITEMS_PER_PAGE } from '../utils/constants';
 import { FindItemsDto } from './dto/find-items-query.dto';
+import { Region } from './entities/region.entity';
+import { Country } from './entities/country.entity';
 
 @Injectable()
 export class ItemsService {
@@ -34,8 +36,12 @@ export class ItemsService {
     private cloudinaryService: CloudinaryService,
     @InjectRepository(Item)
     private itemsRepository: Repository<Item>,
-    @InjectRepository(Location)
-    private locationRepository: Repository<Location>,
+    @InjectRepository(City)
+    private cityRepository: Repository<City>,
+    @InjectRepository(Region)
+    private regionRepository: Repository<Region>,
+    @InjectRepository(Country)
+    private countryRepository: Repository<Country>,
     @InjectRepository(ImageItem)
     private imageItemRepository: Repository<ImageItem>,
   ) {}
@@ -64,7 +70,7 @@ export class ItemsService {
       createItemDto.longitude,
       createItemDto.latitude,
     );
-    newItem.location = location;
+    newItem.city = location;
 
     //generate point
     const pointObject: Point = {
@@ -88,16 +94,28 @@ export class ItemsService {
   }
 
   async findAll(findItemsDto: FindItemsDto) {
+    return this.findItems(findItemsDto, true);
+  }
+  async findAllForAdmins(findItemsDto: FindItemsDto) {
+    return this.findItems(findItemsDto, false);
+  }
+
+  private async findItems(findItemsDto: FindItemsDto, isActiveOnly: boolean) {
     const sqlLine = this.itemsRepository
       .createQueryBuilder('item')
-      .where('item.status = :active', { active: 'active' })
       .leftJoinAndSelect('item.category', 'category')
       .leftJoinAndSelect('category.parentCategory', 'parentCategory')
       .leftJoinAndSelect('item.user', 'user')
-      .leftJoinAndSelect('item.location', 'location')
+      .leftJoinAndSelect('item.city', 'city')
+      .leftJoinAndSelect('city.region', 'region')
+      .leftJoinAndSelect('region.country', 'country')
       .leftJoinAndSelect('item.images', 'imageItem')
-      .orderBy('item_id', 'DESC');
+      .orderBy('item.createdAt', 'DESC');
 
+    //isActiveOnly
+    if (isActiveOnly) {
+      sqlLine.where('item.status = :active', { active: 'active' });
+    }
     //for point
     if (findItemsDto.lat && findItemsDto.lng) {
       const userLocation = `ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography`;
@@ -114,10 +132,20 @@ export class ItemsService {
           radius: distanceInMeters,
         });
     }
+
+    //for min and max price
+    if (findItemsDto.minPrice) {
+      sqlLine.andWhere('item.price >= :min', { min: findItemsDto.minPrice });
+    }
+
+    if (findItemsDto.maxPrice) {
+      sqlLine.andWhere('item.price <= :max', { max: findItemsDto.maxPrice });
+    }
+
     //for sorting
     if (findItemsDto.sorting) {
       if (findItemsDto.sorting === SortingType.CREATION) {
-        sqlLine.orderBy('item_id', 'DESC');
+        sqlLine.orderBy('item.createdAt', 'DESC');
       } else if (findItemsDto.sorting === SortingType.ASC_PRICE) {
         sqlLine.orderBy('item.price', 'ASC');
       } else if (findItemsDto.sorting === SortingType.DESC_PRICE) {
@@ -131,17 +159,53 @@ export class ItemsService {
         findItemsDto.category,
       );
       if (category.parentCategory) {
-        sqlLine.andWhere('category.id = :id', {
-          id: findItemsDto.category,
+        sqlLine.andWhere('category.id = :categoryId', {
+          categoryId: findItemsDto.category,
         });
       } else {
-        sqlLine.andWhere('parentCategory.id = :id', {
-          id: findItemsDto.category,
+        sqlLine.andWhere('parentCategory.id = :categoryId', {
+          categoryId: findItemsDto.category,
         });
       }
     }
 
-    //اضافة فلتر اللوكيشن هنا مع تغيير الانتنيبتي واضافة انتيني بلد و ريجون وبلايس واسال جيمناي الاول برضو
+    //for locations
+    let locationID: number | null = null;
+    let locationFIlerQuery = '';
+    if (findItemsDto.city) {
+      const city = await this.cityRepository.findOneBy({
+        id: findItemsDto.city,
+      });
+      if (!city) {
+        throw new BadRequestException('there is no city with that id');
+      }
+      locationFIlerQuery = 'city.id = :locationID';
+      locationID = findItemsDto.city;
+    } else if (findItemsDto.region) {
+      const region = await this.regionRepository.findOneBy({
+        id: findItemsDto.region,
+      });
+      if (!region) {
+        throw new BadRequestException('there is no region with that id');
+      }
+      locationFIlerQuery = 'region.id = :locationID';
+      locationID = findItemsDto.region;
+    } else if (findItemsDto.country) {
+      const country = await this.countryRepository.findOneBy({
+        id: findItemsDto.country,
+      });
+      if (!country) {
+        throw new BadRequestException('there is no country with that id');
+      }
+      locationFIlerQuery = 'country.id = :locationID';
+      locationID = findItemsDto.country;
+    }
+
+    if (locationID) {
+      sqlLine.andWhere(locationFIlerQuery, {
+        locationID,
+      });
+    }
 
     //for pagination
     const totalItems = await sqlLine.getCount();
@@ -166,20 +230,23 @@ export class ItemsService {
     }
 
     return { items, totalItems };
-
-    // else {
-    //   items = await this.itemsRepository.find({
-    //     where: { status: ItemStatusType.ACTIVE },
-    //     skip: 0,
-    //     take: 10,
-    //     relations: { category: { parentCategory: true } },
-    //   });
-    // }
-
-    return 'items';
   }
 
   //todo get all items included expired for admins
+  async findItemsByUser(userId: number, page: number) {
+    const user = await this.usersService.getUserBy(userId);
+
+    const limit = ITEMS_PER_PAGE;
+    const skip = limit * ((page ?? 1) - 1);
+
+    const items = await this.itemsRepository.findAndCount({
+      where: { user: { id: user.id } },
+      skip: skip,
+      take: limit,
+      relations: { category: { parentCategory: true } },
+    });
+    return { items: items[0], totalItems: items[1] };
+  }
   //todo get my items included expired for user
 
   async findOne(id: number) {
@@ -226,7 +293,7 @@ export class ItemsService {
         updateItemDto.longitude,
         updateItemDto.latitude,
       );
-      item.location = location;
+      item.city = location;
       //generate point
       const pointObject: Point = {
         type: 'Point',
@@ -349,26 +416,51 @@ export class ItemsService {
     if (!region || !country)
       throw new BadRequestException('not found your location on map');
 
-    if (!place) place = region;
+    if (!place) place = 'other';
 
     //find location in dataBase or generate it
-    let foundLocation = await this.locationRepository.findOne({
-      where: {
-        country,
-        region,
-        place,
-      },
+    let foundCountry = await this.countryRepository.findOneBy({
+      country,
     });
-    if (!foundLocation) {
-      foundLocation = this.locationRepository.create({
-        country,
-        region,
-        place,
+    let foundRegion: Region | null = null;
+    let foundCity: City | null = null;
+
+    if (foundCountry) {
+      foundRegion = await this.regionRepository.findOne({
+        where: { country: { id: foundCountry.id }, region: region },
       });
-      await this.locationRepository.save(foundLocation);
+    } else {
+      foundCountry = this.countryRepository.create({
+        country: country,
+      });
     }
 
-    return foundLocation;
+    if (foundRegion) {
+      foundCity = await this.cityRepository.findOneBy({
+        region: { id: foundRegion.id },
+        city: place,
+      });
+    } else {
+      foundRegion = this.regionRepository.create({
+        country: foundCountry,
+        region,
+      });
+    }
+
+    if (!foundCity) {
+      foundCity = this.cityRepository.create({
+        region: foundRegion,
+        city: place,
+      });
+      foundCity = await this.cityRepository.save(foundCity);
+    }
+    return foundCity;
+  }
+
+  getAllLocations() {
+    return this.countryRepository.find({
+      relations: { regions: { cities: true } },
+    });
   }
 }
 

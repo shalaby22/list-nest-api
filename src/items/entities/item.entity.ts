@@ -11,9 +11,9 @@ import {
 import type { Point } from 'typeorm';
 import { User } from '../../users/users.entity';
 import { Category } from '../../categories/entities/category.entity';
-import { Location } from './location.entity';
 import { ImageItem } from './image-item.entity';
 import { ItemStatusType } from '../../utils/enums';
+import { City } from './city.entity';
 
 @Entity()
 export class Item {
@@ -58,8 +58,8 @@ export class Item {
   @ManyToOne(() => Category, (category) => category.items, { eager: true })
   category: Category;
 
-  @ManyToOne(() => Location, (location) => location.items, { eager: true })
-  location: Location;
+  @ManyToOne(() => City, (city) => city.items, { eager: true })
+  city: City;
 
   @OneToMany(() => ImageItem, (imageItem) => imageItem.item, {
     eager: true,

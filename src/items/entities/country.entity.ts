@@ -5,25 +5,19 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Item } from './item.entity';
+import { Region } from './region.entity';
 
 @Entity()
-export class Location {
+export class Country {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
   country: string;
 
-  @Column()
-  region: string;
-
-  @Column()
-  place: string;
-
   @CreateDateColumn()
   createdAt: Date;
 
-  @OneToMany(() => Item, (item) => item.location)
-  items: Item[];
+  @OneToMany(() => Region, (region) => region.country)
+  regions: Region[];
 }

@@ -10,8 +10,10 @@ import { Category } from './categories/entities/category.entity';
 import { ItemsModule } from './items/items.module';
 import { Item } from './items/entities/item.entity';
 import { ImageItem } from './items/entities/image-item.entity';
-import { Location } from './items/entities/location.entity';
+import { City } from './items/entities/city.entity';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { Country } from './items/entities/country.entity';
+import { Region } from './items/entities/region.entity';
 
 @Module({
   imports: [
@@ -28,7 +30,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
         username: configService.get('DATABASE_USER'),
         password: configService.get('DATABASE_PASSWORD'),
         database: configService.get('DATABASE_NAME'),
-        entities: [User, Category, Item, ImageItem, Location],
+        entities: [User, Category, Item, ImageItem, City, Country, Region],
         //warning from synchronize only for development todo
         //todo add PostGIS to postgres in migrations
         //installExtensions - A boolean to control whether to install necessary postgres extensions automatically or not (default: true)

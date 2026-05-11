@@ -37,6 +37,16 @@ export class FindItemsDto {
   @IsOptional()
   distance?: number;
 
+  @IsNumber()
+  @Type(() => Number)
+  @IsOptional()
+  minPrice?: number;
+
+  @IsNumber()
+  @Type(() => Number)
+  @IsOptional()
+  maxPrice?: number;
+
   @IsString()
   @IsOptional()
   country?: number;
@@ -47,5 +57,5 @@ export class FindItemsDto {
 
   @IsString()
   @IsOptional()
-  place?: number;
+  city?: number;
 }
