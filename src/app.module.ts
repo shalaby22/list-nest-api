@@ -14,6 +14,8 @@ import { City } from './items/entities/city.entity';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { Country } from './items/entities/country.entity';
 import { Region } from './items/entities/region.entity';
+import { WishlistModule } from './wishlist/wishlist.module';
+import { Wishlist } from './wishlist/wishlist.entity';
 
 @Module({
   imports: [
@@ -30,7 +32,16 @@ import { Region } from './items/entities/region.entity';
         username: configService.get('DATABASE_USER'),
         password: configService.get('DATABASE_PASSWORD'),
         database: configService.get('DATABASE_NAME'),
-        entities: [User, Category, Item, ImageItem, City, Country, Region],
+        entities: [
+          User,
+          Category,
+          Item,
+          ImageItem,
+          City,
+          Country,
+          Region,
+          Wishlist,
+        ],
         //warning from synchronize only for development todo
         //todo add PostGIS to postgres in migrations
         //todo add pg_trgm to postgres in migrations
@@ -46,6 +57,7 @@ import { Region } from './items/entities/region.entity';
     CategoriesModule,
     ItemsModule,
     CloudinaryModule,
+    WishlistModule,
   ],
   controllers: [AppController],
   providers: [AppService],

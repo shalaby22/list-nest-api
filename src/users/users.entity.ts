@@ -9,6 +9,7 @@ import {
 import { UserType } from '../utils/enums';
 import { Exclude } from 'class-transformer';
 import { Item } from '../items/entities/item.entity';
+import { Wishlist } from '../wishlist/wishlist.entity';
 
 @Entity()
 export class User {
@@ -49,6 +50,9 @@ export class User {
   //relations
   @OneToMany(() => Item, (item) => item.user)
   items: Item[];
+
+  @OneToMany(() => Wishlist, (wishlist) => wishlist.user)
+  wishlist: Wishlist[];
 
   //not column
   @Exclude()

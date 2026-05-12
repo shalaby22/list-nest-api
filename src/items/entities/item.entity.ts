@@ -14,6 +14,7 @@ import { Category } from '../../categories/entities/category.entity';
 import { ImageItem } from './image-item.entity';
 import { ItemStatusType } from '../../utils/enums';
 import { City } from './city.entity';
+import { Wishlist } from '../../wishlist/wishlist.entity';
 
 @Entity()
 export class Item {
@@ -78,4 +79,7 @@ export class Item {
     cascade: ['insert'],
   })
   images: ImageItem[];
+
+  @OneToMany(() => Wishlist, (wishlist) => wishlist.item)
+  wishlist: Wishlist[];
 }
