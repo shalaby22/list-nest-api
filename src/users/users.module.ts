@@ -17,6 +17,7 @@ import { RefreshTokenStoreProvider } from './auth/RefreshToken.provider';
 
 import type { StringValue } from 'ms';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
+import { WsJwtStrategy } from './auth/ws-jwt.strategy';
 
 @Module({
   controllers: [UsersController],
@@ -43,6 +44,7 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
     AuthProvider,
     LocalStrategy,
     JwtStrategy,
+    WsJwtStrategy,
     RefreshTokenStoreProvider,
     googleStrategy,
     {

@@ -79,7 +79,7 @@ export class ItemsController {
   @Get('user/:userId')
   findItemsByUser(
     @Param('userId', ParseIntPipe) userId: number,
-    @Query('page', ParseIntPipe) page: number,
+    @Query('page', new ParseIntPipe({ optional: true })) page: number,
   ) {
     return this.itemsService.findItemsByUser(userId, page);
   }

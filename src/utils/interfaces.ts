@@ -1,5 +1,6 @@
 import { User } from '../users/users.entity';
 import { JwtPayloadType } from './types';
+import { Socket } from 'socket.io';
 
 export interface RequestWithUserPayload extends Request {
   user: JwtPayloadType;
@@ -35,4 +36,11 @@ export interface RawItemData {
 export interface RawChatData {
   chat_id: number;
   unreadCount: number;
+}
+
+export interface AuthenticatedSocket extends Socket {
+  user: {
+    id: number;
+    userType: string;
+  };
 }

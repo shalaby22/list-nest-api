@@ -10,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Chat } from './entities/chat.entity';
 import { Repository } from 'typeorm';
 import { RawChatData } from '../utils/interfaces';
+import { MESSAGES_PER_PAGE } from '../utils/constants';
 
 @Injectable()
 export class ChatsService {
@@ -43,7 +44,7 @@ export class ChatsService {
     return chat;
   }
 
-  async getChatMessages(chatId: number, userId: number) {
+  async getChatMessages(chatId: number, userId: number, page?: number) {
     const chat = await this.chatRepository.findOne({
       where: { id: chatId },
       relations: { buyer: true, seller: true, item: true },
@@ -52,20 +53,40 @@ export class ChatsService {
       throw new UnauthorizedException('not allowed to see this conversation');
     }
 
-    return this.messageRepository.find({
-      where: { chat: { id: chatId } },
-      order: { createdAt: 'desc' },
-    });
-    //todo pagination
+    const query = this.messageRepository
+      .createQueryBuilder('message')
+      .select([
+        'message.id id',
+        'message.content content',
+        'message.createdAt createdAt',
+        'message.senderId senderId',
+        'message.isRead isRead',
+        'message.receiverId receiverId',
+      ])
+      .where('message.chatId = :chatId', { chatId })
+      .orderBy('message.createdAt', 'DESC');
+
+    //for pagination
+    const totalMessages = await query.getCount();
+    const limit = MESSAGES_PER_PAGE;
+    const skip = limit * ((page ?? 1) - 1);
+    query.skip(skip).take(limit);
+
+    const messages = await query.getRawMany();
+    return { messages, totalMessages };
   }
 
-  async getUserInbox(userId: number) {
-    const { entities, raw } = await this.chatRepository
+  async getUserInbox(userId: number, itemId?: number) {
+    const query = this.chatRepository
       .createQueryBuilder('chat')
-      .where('chat.buyerId = :userId OR chat.sellerId = :userId', {
+      .where('(chat.buyerId = :userId OR chat.sellerId = :userId)', {
         userId,
-      })
-      .leftJoinAndSelect('chat.messages', 'message')
+      });
+
+    if (itemId) {
+      query.andWhere('chat.itemId = :itemId', { itemId });
+    }
+    query
       .addSelect((subQuery) => {
         return subQuery
           .select('COUNT(message.id)')
@@ -77,9 +98,9 @@ export class ChatsService {
       .leftJoinAndSelect('chat.item', 'item')
       .leftJoinAndSelect('chat.buyer', 'buyer')
       .leftJoinAndSelect('chat.seller', 'seller')
-      .orderBy('chat.updatedAt', 'DESC')
-      .getRawAndEntities();
+      .orderBy('chat.updatedAt', 'DESC');
 
+    const { entities, raw } = await query.getRawAndEntities();
     const unreadCountMap = new Map();
     raw.forEach((ele: RawChatData) => {
       unreadCountMap.set(ele.chat_id, +ele.unreadCount);
@@ -104,5 +125,37 @@ export class ChatsService {
     return 'messages read successfully';
   }
 
-  //todo send message
+  async saveMessage(
+    chatId: number,
+    senderId: number,
+    receiverId: number,
+    content: string,
+  ) {
+    const message = this.messageRepository.create({
+      chat: { id: chatId },
+      sender: { id: senderId },
+      receiver: { id: receiverId },
+      content,
+    });
+
+    return await this.messageRepository.save(message);
+  }
+
+  async verifyConversationAccess(chatId: number, userId: number) {
+    const chat = await this.chatRepository.findOne({
+      where: { id: chatId },
+      select: ['id', 'buyer', 'seller'],
+      relations: { buyer: true, seller: true },
+    });
+
+    if (!chat) {
+      throw new Error('not found this conversation');
+    }
+
+    if (chat.buyer.id !== userId && chat.seller.id !== userId) {
+      throw new Error('not allowed to reach this chat');
+    }
+
+    return chat;
+  }
 }

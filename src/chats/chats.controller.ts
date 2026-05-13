@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   UseInterceptors,
   ClassSerializerInterceptor,
+  Query,
 } from '@nestjs/common';
 import { ChatsService } from './chats.service';
 import { JwtAuthGuard } from '../users/auth/guards/jwt-auth.guard';
@@ -34,12 +35,21 @@ export class ChatsController {
     return this.chatsService.getUserInbox(jwtPayload.id);
   }
 
+  @Get('inbox/:chatId')
+  getChatsOfItem(
+    @User() jwtPayload: JwtPayloadType,
+    @Param('chatId', ParseIntPipe) chatId: number,
+  ) {
+    return this.chatsService.getUserInbox(jwtPayload.id, chatId);
+  }
+
   @Get(':chatId')
   getChatMessages(
     @User() jwtPayload: JwtPayloadType,
     @Param('chatId', ParseIntPipe) chatId: number,
+    @Query('page', new ParseIntPipe({ optional: true })) page?: number,
   ) {
-    return this.chatsService.getChatMessages(chatId, jwtPayload.id);
+    return this.chatsService.getChatMessages(chatId, jwtPayload.id, page);
   }
 
   @Patch(':chatId')
