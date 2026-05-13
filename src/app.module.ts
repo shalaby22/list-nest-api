@@ -16,6 +16,9 @@ import { Country } from './items/entities/country.entity';
 import { Region } from './items/entities/region.entity';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { Wishlist } from './wishlist/wishlist.entity';
+import { ChatsModule } from './chats/chats.module';
+import { Chat } from './chats/entities/chat.entity';
+import { Message } from './chats/entities/message.entity';
 
 @Module({
   imports: [
@@ -41,6 +44,8 @@ import { Wishlist } from './wishlist/wishlist.entity';
           Country,
           Region,
           Wishlist,
+          Chat,
+          Message,
         ],
         //warning from synchronize only for development todo
         //todo add PostGIS to postgres in migrations
@@ -58,6 +63,7 @@ import { Wishlist } from './wishlist/wishlist.entity';
     ItemsModule,
     CloudinaryModule,
     WishlistModule,
+    ChatsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

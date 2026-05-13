@@ -10,6 +10,8 @@ import { UserType } from '../utils/enums';
 import { Exclude } from 'class-transformer';
 import { Item } from '../items/entities/item.entity';
 import { Wishlist } from '../wishlist/wishlist.entity';
+import { Chat } from '../chats/entities/chat.entity';
+import { Message } from '../chats/entities/message.entity';
 
 @Entity()
 export class User {
@@ -20,6 +22,7 @@ export class User {
   email: string;
 
   @Column()
+  //todo select falsy
   @Exclude()
   password: string;
 
@@ -53,6 +56,18 @@ export class User {
 
   @OneToMany(() => Wishlist, (wishlist) => wishlist.user)
   wishlist: Wishlist[];
+
+  @OneToMany(() => Chat, (chat) => chat.seller)
+  sellerChats: Chat[];
+
+  @OneToMany(() => Chat, (chat) => chat.buyer)
+  buyerChats: Chat[];
+
+  @OneToMany(() => Message, (message) => message.sender)
+  sentMessages: Message[];
+
+  @OneToMany(() => Message, (message) => message.receiver)
+  receivedMessages: Message[];
 
   //not column
   @Exclude()

@@ -31,3 +31,8 @@ export interface RawItemData {
   item_id: number;
   distance: number;
 }
+
+export interface RawChatData {
+  chat_id: number;
+  unreadCount: number;
+}

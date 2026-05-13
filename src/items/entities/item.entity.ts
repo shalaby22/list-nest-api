@@ -15,6 +15,7 @@ import { ImageItem } from './image-item.entity';
 import { ItemStatusType } from '../../utils/enums';
 import { City } from './city.entity';
 import { Wishlist } from '../../wishlist/wishlist.entity';
+import { Chat } from '../../chats/entities/chat.entity';
 
 @Entity()
 export class Item {
@@ -82,4 +83,7 @@ export class Item {
 
   @OneToMany(() => Wishlist, (wishlist) => wishlist.item)
   wishlist: Wishlist[];
+
+  @OneToMany(() => Chat, (chat) => chat.item)
+  chats: Chat[];
 }
