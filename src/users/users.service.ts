@@ -47,5 +47,17 @@ export class UsersService {
   deleteUser(id: number) {
     return this.usersProvider.deleteUserBy(id);
   }
-}
 
+  getVerificationToken(id: number) {
+    return this.authProvider.getVerificationToken(id);
+  }
+  verifyEmail(token: string) {
+    return this.authProvider.verifyEmail(token);
+  }
+  forgotPassword(email: string) {
+    return this.authProvider.forgotPassword(email);
+  }
+  resetPassword(token: string, newPassword: string) {
+    return this.authProvider.resetPassword(token, newPassword);
+  }
+}

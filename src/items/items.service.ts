@@ -55,10 +55,12 @@ export class ItemsService {
     newItem.title = createItemDto.title;
     newItem.description = createItemDto.description;
     newItem.price = createItemDto.price;
+
     //check if verified user
     const user = await this.usersService.getUserBy(userId);
     if (!user.isVerified)
       throw new BadRequestException('your user is not verified yet');
+
     newItem.user = user;
 
     //check if category is a child category

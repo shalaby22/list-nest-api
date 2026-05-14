@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { AuthProvider } from './auth.provider';
 import { RegisterDto } from '../dtos/register.dto';
 import { Profile } from '../../utils/types';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class googleStrategy extends PassportStrategy(Strategy) {
@@ -36,23 +37,27 @@ export class googleStrategy extends PassportStrategy(Strategy) {
       email: profile.emails[0].value,
     });
     if (foundUser) {
+      if (foundUser.phone && !foundUser.isVerified) {
+        foundUser.isVerified = true;
+        await this.usersRepository.save(foundUser);
+      }
       return this.authProvider.login(foundUser);
     } else {
+      const password = crypto.randomBytes(32).toString('hex');
       const registerDto: RegisterDto = {
         email: profile.emails[0].value,
-        password: accessToken,
+        password: password,
         phone: '',
         username: profile.id,
         firstName: profile.name.givenName,
         lastName: profile.name.familyName,
       };
       const user = await this.authProvider.Register(registerDto);
-      //keep verified false until but phone number
+      //keep verified false until adding phone number can't create item or start chat before being verified
       // user.isVerified = true;
       // await this.usersRepository.save(user);
       return user;
     }
   }
-  //todo edit phone
-  //add verify email and forgot password
+  //ـ Rate Limiting عشان نحمي مسار نسيان الباسورد من الـ Spam؟ todo
 }

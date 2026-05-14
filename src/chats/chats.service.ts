@@ -32,8 +32,11 @@ export class ChatsService {
       where: { item: { id: itemId }, buyer: { id: userId } },
     });
     if (!chat) {
+      //check if verified user
       const buyerUser = await this.usersService.getUserBy(userId);
-      console.log(buyerUser);
+      if (!buyerUser.isVerified)
+        throw new BadRequestException('your user is not verified yet');
+
       chat = this.chatRepository.create({
         item: { id: itemId },
         buyer: { id: userId },

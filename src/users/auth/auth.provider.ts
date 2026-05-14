@@ -12,6 +12,9 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { RefreshTokenStoreProvider } from './RefreshToken.provider';
 import * as crypto from 'crypto';
+import { MailerService } from '@nestjs-modules/mailer';
+import { VerifyEmailProvider } from './verifyEmail.provider';
+import { ForgotPasswordProvider } from './forgotPassword.provider';
 
 @Injectable()
 export class AuthProvider {
@@ -19,7 +22,10 @@ export class AuthProvider {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
     private jwtService: JwtService,
+    private verifyEmailProvider: VerifyEmailProvider,
     private refreshTokenStoreProvider: RefreshTokenStoreProvider,
+    private forgotPasswordProvider: ForgotPasswordProvider,
+    private readonly mailerService: MailerService,
   ) {}
 
   /**
@@ -46,7 +52,7 @@ export class AuthProvider {
     });
     const resultUser = await this.usersRepository.save(user);
     const userWithToken = this.login(resultUser);
-
+    await this.verifyEmailProvider.getVerificationToken(resultUser.id);
     return userWithToken;
   }
 
@@ -108,5 +114,19 @@ export class AuthProvider {
 
   deleteAllSessions(userId: number) {
     return this.refreshTokenStoreProvider.deleteAllSessions(userId);
+  }
+
+  getVerificationToken(id: number) {
+    return this.verifyEmailProvider.getVerificationToken(id);
+  }
+  verifyEmail(token: string) {
+    return this.verifyEmailProvider.verifyEmail(token);
+  }
+
+  forgotPassword(email: string) {
+    return this.forgotPasswordProvider.forgotPassword(email);
+  }
+  resetPassword(token: string, newPassword: string) {
+    return this.forgotPasswordProvider.resetPassword(token, newPassword);
   }
 }

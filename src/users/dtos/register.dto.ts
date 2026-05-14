@@ -10,6 +10,7 @@ export class RegisterDto {
   @IsString()
   @IsEmail()
   email: string;
+  //make password and email stronger
 
   @IsString()
   @MinLength(8)

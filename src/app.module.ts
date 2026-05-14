@@ -21,7 +21,7 @@ import { Chat } from './chats/entities/chat.entity';
 import { Message } from './chats/entities/message.entity';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-import { WsThrottlerGuard } from './users/auth/guards/ws-throttler.guard';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -86,6 +86,7 @@ import { WsThrottlerGuard } from './users/auth/guards/ws-throttler.guard';
         },
       ],
     }),
+    MailModule,
   ],
   controllers: [AppController],
   providers: [

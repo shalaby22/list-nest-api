@@ -9,13 +9,13 @@ import {
   UseInterceptors,
   Param,
   Put,
-  Request,
   ParseIntPipe,
   Delete,
   HttpStatus,
   HttpCode,
   Res,
   Req,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { RegisterDto } from './dtos/register.dto';
@@ -31,8 +31,11 @@ import { RolesGuard } from './auth/guards/roles.guard';
 import { User } from './auth/decorators/user.decorator';
 import type { JwtPayloadType } from '../utils/types';
 import { GoogleAuthGuard } from './auth/guards/oAuth.guard';
-import type { Response } from 'express';
+import { type Request, type Response } from 'express';
+
 import { ConfigService } from '@nestjs/config';
+import { ForgotPasswordDto } from './dtos/forgot-password.dto';
+import { ResetPasswordDto } from './dtos/reset-password.dto';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller('api/users')
@@ -90,7 +93,7 @@ export class UsersController {
 
   //Get :~/api/users/auth/refresh
   @Get('auth/refresh')
-  public async refreshToken(@Request() req: RequestWithCookies) {
+  public async refreshToken(@Req() req: RequestWithCookies) {
     return this.usersService.refreshAccessToken(req.cookies['refresh_token']);
   }
 
@@ -125,9 +128,42 @@ export class UsersController {
     return 'logged out From all Devices successfully';
   }
   /////////////////////////////////////
-  // users controllers
+  // verify email controllers
+  /////////////////////////////////////
+  //Get :~/api/users/send-email-verification
+  @Get('send-email-verification')
+  @UseGuards(JwtAuthGuard)
+  public getVerificationToken(@User() jwtPayload: JwtPayloadType) {
+    return this.usersService.getVerificationToken(jwtPayload.id);
+  }
+
+  //Get :~/api/users/verify-email
+  @Get('verify-email')
+  public verifyEmail(@Query('token') token: string) {
+    return this.usersService.verifyEmail(token);
+  }
+
+  /////////////////////////////////////
+  // forgot password controllers
   /////////////////////////////////////
 
+  //Post :~/api/users/forgot-password
+  @Post('forgot-password')
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.usersService.forgotPassword(forgotPasswordDto.email);
+  }
+
+  //Post :~/api/users/reset-password
+  @Post('reset-password')
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.usersService.resetPassword(
+      resetPasswordDto.token,
+      resetPasswordDto.password,
+    );
+  }
+  /////////////////////////////////////
+  // users controllers
+  /////////////////////////////////////
   //Get :~/api/users
   @Get()
   @Roles([UserType.ADMIN])
