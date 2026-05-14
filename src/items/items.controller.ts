@@ -24,6 +24,7 @@ import { FindItemsDto } from './dto/find-items-query.dto';
 import { Roles } from '../users/auth/decorators/roles.decorator';
 import { UserType } from '../utils/enums';
 import { RolesGuard } from '../users/auth/guards/roles.guard';
+import { Throttle } from '@nestjs/throttler';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller('api/items')
@@ -31,6 +32,7 @@ export class ItemsController {
   constructor(private readonly itemsService: ItemsService) {}
 
   @Post()
+  @Throttle({ default: { limit: 2, ttl: 60000 } })
   @UseGuards(JwtAuthGuard)
   create(
     @Body() createItemDto: CreateItemDto,
@@ -76,13 +78,14 @@ export class ItemsController {
     return this.itemsService.findAllForAdmins(findItemsDto);
   }
 
-  @Get('user/:userId')
-  findItemsByUser(
-    @Param('userId', ParseIntPipe) userId: number,
-    @Query('page', new ParseIntPipe({ optional: true })) page: number,
-  ) {
-    return this.itemsService.findItemsByUser(userId, page);
-  }
+  //<deprecated> use find all with user query
+  // @Get('user/:userId')
+  // findItemsByUser(
+  //   @Param('userId', ParseIntPipe) userId: number,
+  //   @Query('page', new ParseIntPipe({ optional: true })) page: number,
+  // ) {
+  //   return this.itemsService.findItemsByUser(userId, page);
+  // }
 
   @Get('locations')
   findAllLocations() {

@@ -19,6 +19,9 @@ import { Wishlist } from './wishlist/wishlist.entity';
 import { ChatsModule } from './chats/chats.module';
 import { Chat } from './chats/entities/chat.entity';
 import { Message } from './chats/entities/message.entity';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+import { WsThrottlerGuard } from './users/auth/guards/ws-throttler.guard';
 
 @Module({
   imports: [
@@ -64,8 +67,33 @@ import { Message } from './chats/entities/message.entity';
     CloudinaryModule,
     WishlistModule,
     ChatsModule,
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          name: 'short',
+          ttl: 1000,
+          limit: 3,
+        },
+        {
+          name: 'medium',
+          ttl: 10000,
+          limit: 10,
+        },
+        {
+          name: 'long',
+          ttl: 60000,
+          limit: 30,
+        },
+      ],
+    }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

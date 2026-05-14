@@ -286,20 +286,21 @@ export class ItemsService {
     //         return { items, totalItems };
   }
 
-  async findItemsByUser(userId: number, page: number) {
-    const user = await this.usersService.getUserBy(userId);
+  //<deprecated> use find all with user query
+  // async findItemsByUser(userId: number, page: number) {
+  //   const user = await this.usersService.getUserBy(userId);
 
-    const limit = ITEMS_PER_PAGE;
-    const skip = limit * ((page ?? 1) - 1);
+  //   const limit = ITEMS_PER_PAGE;
+  //   const skip = limit * ((page ?? 1) - 1);
 
-    const items = await this.itemsRepository.findAndCount({
-      where: { user: { id: user.id } },
-      skip: skip,
-      take: limit,
-      relations: { category: { parentCategory: true } },
-    });
-    return { items: items[0], totalItems: items[1] };
-  }
+  //   const items = await this.itemsRepository.findAndCount({
+  //     where: { user: { id: user.id } },
+  //     skip: skip,
+  //     take: limit,
+  //     relations: { category: { parentCategory: true } },
+  //   });
+  //   return { items: items[0], totalItems: items[1] };
+  // }
 
   async findOne(id: number) {
     const item = await this.itemsRepository.findOne({

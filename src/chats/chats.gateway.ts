@@ -11,6 +11,7 @@ import { Server, Socket } from 'socket.io';
 import { ParseIntPipe, UseGuards } from '@nestjs/common';
 import { WsJwtGuard } from '../users/auth/guards/ws-jwt-auth.guard';
 import type { AuthenticatedSocket } from '../utils/interfaces';
+import { WsThrottlerGuard } from '../users/auth/guards/ws-throttler.guard';
 
 @WebSocketGateway({
   namespace: '/api/socket/chats',
@@ -19,6 +20,7 @@ import type { AuthenticatedSocket } from '../utils/interfaces';
   },
 })
 @UseGuards(WsJwtGuard)
+@UseGuards(WsThrottlerGuard)
 export class ChatsGateway {
   @WebSocketServer()
   server: Server;
