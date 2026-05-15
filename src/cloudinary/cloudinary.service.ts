@@ -33,8 +33,9 @@ export class CloudinaryService {
   }
 
   async deleteImage(PublicID: string) {
+    // console.log(await cloudinary.api.resource(PublicID));
     await cloudinary.uploader.destroy(PublicID);
-    //todo can make queue system here to track if deleted
+    //todo can make queue system here to track if deleted and catch errors if there was wrong path
 
     return 'deleted successfully';
   }
@@ -42,7 +43,53 @@ export class CloudinaryService {
   async deleteFolder(folderPath: string) {
     await cloudinary.api.delete_resources_by_prefix(folderPath);
     await cloudinary.api.delete_folder(folderPath);
-    //todo can make queue system here to track if deleted
+    //todo can make queue system here to track if deleted and catch errors if there was wrong path
     return 'deleted successfully';
+  }
+
+  async imageExists(PublicID: string) {
+    try {
+      await cloudinary.api.resource(PublicID);
+    } catch (_err) {
+      console.log('not found image');
+
+      return false;
+    }
+    return true;
+  }
+
+  async getAllImagesOfThreeDays() {
+    const allRemotePublicIds: string[] = [];
+    let nextCursor = null;
+
+    do {
+      let searchApi = cloudinary.search
+        .expression('folder:items/* AND uploaded_at>3d AND uploaded_at<1h')
+        .max_results(500);
+
+      if (nextCursor) {
+        searchApi = searchApi.next_cursor(nextCursor);
+      }
+
+      const recentUploads = (await searchApi.execute()) as {
+        resources: { public_id: string }[];
+        next_cursor: any;
+      };
+      // console.log(recentUploads.resources);
+
+      const batchIds: string[] = recentUploads.resources.map((img) => {
+        return `https://res.cloudinary.com/${this.configService.get<string>('CLOUDINARY_NAME')}/${img.public_id}`;
+      });
+
+      allRemotePublicIds.push(...batchIds);
+
+      nextCursor = recentUploads.next_cursor as null;
+    } while (nextCursor);
+
+    return allRemotePublicIds;
+  }
+
+  async deleteArrayOfPublicIds(PublicIds: string[]) {
+    return (await cloudinary.api.delete_resources(PublicIds)) as unknown;
   }
 }

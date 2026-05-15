@@ -11,10 +11,11 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { Country } from './entities/country.entity';
 import { City } from './entities/city.entity';
 import { Region } from './entities/region.entity';
+import { ItemsCronService } from './items-cron.service';
 
 @Module({
   controllers: [ItemsController],
-  providers: [ItemsService],
+  providers: [ItemsService, ItemsCronService],
   imports: [
     TypeOrmModule.forFeature([Item, ImageItem, Country, City, Region]),
     forwardRef(() => CategoriesModule),

@@ -22,6 +22,8 @@ import { Message } from './chats/entities/message.entity';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { MailModule } from './mail/mail.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
@@ -30,6 +32,7 @@ import { MailModule } from './mail/mail.module';
       envFilePath: '.env.development.local',
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
@@ -87,6 +90,16 @@ import { MailModule } from './mail/mail.module';
       ],
     }),
     MailModule,
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        connection: {
+          host: configService.get<string>('REDIS_HOST'),
+          port: configService.get<number>('REDIS_PORT'),
+          db: 2,
+        },
+      }),
+    }),
   ],
   controllers: [AppController],
   providers: [

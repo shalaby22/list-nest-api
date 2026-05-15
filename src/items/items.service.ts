@@ -320,6 +320,9 @@ export class ItemsService {
         'you are not allowed to remove another one item',
       );
     }
+    //can't edit expired item
+    if (item.status === ItemStatusType.EXPIRED)
+      throw new BadRequestException("can't edit status of expired item");
 
     item.title = updateItemDto.title ?? item.title;
     item.description = updateItemDto.description ?? item.description;
@@ -327,8 +330,6 @@ export class ItemsService {
 
     //check for status
     if (updateItemDto.status) {
-      if (item.status === ItemStatusType.EXPIRED)
-        throw new BadRequestException("can't edit status of expired item");
       item.status = updateItemDto.status;
     }
     //check if category is a child category
@@ -374,6 +375,7 @@ export class ItemsService {
           )[1];
           const _deleted = this.cloudinaryService.deleteImage(PublicID);
           await this.imageItemRepository.remove(image);
+          item.images = item.images.filter((img) => img.id !== imageId);
         }
       }
     }
@@ -394,6 +396,7 @@ export class ItemsService {
       );
     }
     if (item.images.length) {
+      //todo queue here
       const _deleted = this.cloudinaryService.deleteFolder(
         `items/user_${item.user.id}/${id}`,
       );
@@ -424,15 +427,22 @@ export class ItemsService {
     ) {
       item.status = ItemStatusType.ACTIVE;
     }
+
     //------
     const itemImagesLinks = item.images.map((ele) => ele.link);
-    console.log(itemImagesLinks);
-
+    // console.log(itemImagesLinks);
+    const notAddedImages: string[] = [];
     const newImages: ImageItem[] = [];
     for (let i = 0; i < addImagesToItemDto.imageIds.length; i++) {
       const element = addImagesToItemDto.imageIds[i];
-      const link = `https://res.cloudinary.com/dmudqzggn/items/user_${userId}/${itemId}/${element}`;
+      const publicId = `items/user_${userId}/${itemId}/${element}`;
+      const link = `https://res.cloudinary.com/${this.configService.get<string>('CLOUDINARY_NAME')}/${publicId}`;
+
       if (!itemImagesLinks.includes(link)) {
+        if (!(await this.cloudinaryService.imageExists(publicId))) {
+          notAddedImages.push(element);
+          continue;
+        }
         newImages[i] = this.imageItemRepository.create({
           link,
         });
@@ -440,6 +450,7 @@ export class ItemsService {
       }
     }
     await this.itemsRepository.save(item);
+    item['wrongAddedImages'] = notAddedImages;
     return item;
   }
 

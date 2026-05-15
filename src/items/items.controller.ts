@@ -42,7 +42,6 @@ export class ItemsController {
   }
 
   //replaced that ; made create and update returns signature
-  // //todo add rate limit private
   // @Get('signature/:id')
   // @UseGuards(JwtAuthGuard)
   // getSignature(
@@ -116,5 +115,3 @@ export class ItemsController {
     return this.itemsService.remove(+id, jwtPayload);
   }
 }
-
-// عمل اكسبيراشون todo كل شهر cron
