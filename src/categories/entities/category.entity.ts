@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -27,6 +28,7 @@ export class Category {
   updatedAt: Date;
 
   //relation with self
+  @Index()
   @ManyToOne(() => Category, (category) => category.childCategories, {
     onDelete: 'CASCADE',
   })

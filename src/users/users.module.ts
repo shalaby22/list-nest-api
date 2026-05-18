@@ -20,6 +20,9 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { WsJwtStrategy } from './auth/ws-jwt.strategy';
 import { VerifyEmailProvider } from './auth/verifyEmail.provider';
 import { ForgotPasswordProvider } from './auth/forgotPassword.provider';
+import { BullModule } from '@nestjs/bullmq';
+import { ForgotPasswordProcessor } from './auth/queues/forgotPassword.processor';
+import { verifyEmailProcessor } from './auth/queues/verifyEmail.processor';
 
 @Module({
   controllers: [UsersController],
@@ -39,8 +42,18 @@ import { ForgotPasswordProvider } from './auth/forgotPassword.provider';
       }),
       inject: [ConfigService],
     }),
+    BullModule.registerQueue(
+      {
+        name: 'forgotPassword-queue',
+      },
+      {
+        name: 'verifyEmail-queue',
+      },
+    ),
   ],
   providers: [
+    ForgotPasswordProcessor,
+    verifyEmailProcessor,
     UsersService,
     UsersProvider,
     AuthProvider,
@@ -54,11 +67,16 @@ import { ForgotPasswordProvider } from './auth/forgotPassword.provider';
     {
       provide: REDIS_CLIENT,
       useFactory: (configService: ConfigService) => {
-        return new Redis({
-          host: configService.get<string>('REDIS_HOST'),
-          port: configService.get<number>('REDIS_PORT'),
-          //add password here todo in production
-        });
+        const redisUrl = configService.get<string>('REDIS_URL');
+
+        if (redisUrl) {
+          return new Redis(redisUrl);
+        } else {
+          return new Redis({
+            host: configService.get<string>('REDIS_HOST'),
+            port: configService.get<number>('REDIS_PORT'),
+          });
+        }
       },
       inject: [ConfigService],
     },

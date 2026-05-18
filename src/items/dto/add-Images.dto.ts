@@ -1,11 +1,4 @@
-import {
-  ArrayMinSize,
-  IsArray,
-  IsIn,
-  IsOptional,
-  IsString,
-} from 'class-validator';
-import { ItemStatusType } from '../../utils/enums';
+import { ArrayMinSize, IsArray, IsBoolean, IsString } from 'class-validator';
 
 export class AddImagesToItemDto {
   @IsArray()
@@ -13,7 +6,6 @@ export class AddImagesToItemDto {
   @IsString({ each: true })
   imageIds: string[];
 
-  @IsIn([ItemStatusType.ACTIVE])
-  @IsOptional()
-  status?: ItemStatusType;
+  @IsBoolean()
+  changeDraftToActive: boolean;
 }

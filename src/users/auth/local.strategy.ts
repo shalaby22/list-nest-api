@@ -31,9 +31,20 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
 
   //validate user for login
   async validateUser(email: string, hashedPassword: string): Promise<User> {
-    const user = await this.usersRepository.findOne({
-      where: { email: email },
-    });
+    // const user = await this.usersRepository.findOne({
+    //   where: { email: email },
+    //   select: {
+    //     id: true,
+    //     email: true,
+    //     password: true,
+    //     userType: true,
+    //   },
+    // });
+    const user = await this.usersRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.email = :email', { email })
+      .getOne();
 
     if (user) {
       const isMatch = await bcrypt.compare(hashedPassword, user.password);

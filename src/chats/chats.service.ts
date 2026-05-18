@@ -48,6 +48,7 @@ export class ChatsService {
   }
 
   async getChatMessages(chatId: number, userId: number, page?: number) {
+    //add pagination here todo
     const chat = await this.chatRepository.findOne({
       where: { id: chatId },
       relations: { buyer: true, seller: true, item: true },

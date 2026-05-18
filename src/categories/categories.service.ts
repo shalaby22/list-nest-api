@@ -42,6 +42,7 @@ export class CategoriesService {
   }
 
   findAll() {
+    //todo add here caching
     return this.categoriesRepository.find({
       where: { parentCategory: IsNull() },
       relations: {

@@ -18,6 +18,7 @@ import { Wishlist } from '../../wishlist/wishlist.entity';
 import { Chat } from '../../chats/entities/chat.entity';
 
 @Entity()
+@Index(['status', 'createdAt'])
 export class Item {
   @PrimaryGeneratedColumn()
   id: number;
@@ -31,6 +32,7 @@ export class Item {
   @Column({ type: 'enum', enum: ItemStatusType, default: ItemStatusType.DRAFT })
   status: ItemStatusType;
 
+  @Index()
   @Column()
   price: number;
 
@@ -39,8 +41,8 @@ export class Item {
     type: 'geography',
     spatialFeatureType: 'Point',
     srid: 4326,
-    //todo make nullable false after making sure it works
-    nullable: true,
+    // make nullable false after making sure it works
+    nullable: false,
   })
   point: Point;
 
@@ -63,15 +65,18 @@ export class Item {
   searchVector: string;
 
   //relations
+  @Index()
   @ManyToOne(() => User, (user) => user.items, {
     eager: true,
     onDelete: 'CASCADE',
   })
   user: User;
 
+  @Index()
   @ManyToOne(() => Category, (category) => category.items, { eager: true })
   category: Category;
 
+  @Index()
   @ManyToOne(() => City, (city) => city.items, { eager: true })
   city: City;
 

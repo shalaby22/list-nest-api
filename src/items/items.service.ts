@@ -373,7 +373,7 @@ export class ItemsService {
           const PublicID = image.link.split(
             `${this.configService.get('CLOUDINARY_NAME')}/`,
           )[1];
-          const _deleted = this.cloudinaryService.deleteImage(PublicID);
+          await this.cloudinaryService.deleteImage(PublicID);
           await this.imageItemRepository.remove(image);
           item.images = item.images.filter((img) => img.id !== imageId);
         }
@@ -396,7 +396,6 @@ export class ItemsService {
       );
     }
     if (item.images.length) {
-      //todo queue here
       const _deleted = this.cloudinaryService.deleteFolder(
         `items/user_${item.user.id}/${id}`,
       );
@@ -423,7 +422,7 @@ export class ItemsService {
     //change status to active if it was draft while creating the item
     if (
       item.status === ItemStatusType.DRAFT &&
-      addImagesToItemDto.status === ItemStatusType.ACTIVE
+      addImagesToItemDto.changeDraftToActive === true
     ) {
       item.status = ItemStatusType.ACTIVE;
     }
@@ -529,7 +528,3 @@ export class ItemsService {
     });
   }
 }
-
-//todo add cron job to expire items
-//todo add cron job to delete unused images معتقدش هنحتاجها
-//todo ترتيب السيرفيس والكونترولرز للبرنامج كله

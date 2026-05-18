@@ -5,10 +5,10 @@ import { Item } from '../items/entities/item.entity';
 @Entity()
 export class Wishlist {
   @PrimaryColumn()
-  itemId: number;
+  userId: number;
 
   @PrimaryColumn()
-  userId: number;
+  itemId: number;
 
   @ManyToOne(() => Item, (item) => item.wishlist, {
     onDelete: 'CASCADE',

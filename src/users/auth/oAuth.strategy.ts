@@ -59,5 +59,4 @@ export class googleStrategy extends PassportStrategy(Strategy) {
       return user;
     }
   }
-  //ـ Rate Limiting عشان نحمي مسار نسيان الباسورد من الـ Spam؟ todo
 }

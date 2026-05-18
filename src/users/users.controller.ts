@@ -36,6 +36,7 @@ import { type Request, type Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { ForgotPasswordDto } from './dtos/forgot-password.dto';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
+import { Throttle } from '@nestjs/throttler';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller('api/users')
@@ -131,6 +132,7 @@ export class UsersController {
   // verify email controllers
   /////////////////////////////////////
   //Get :~/api/users/send-email-verification
+  @Throttle({ short: { limit: 1, ttl: 60000 } })
   @Get('send-email-verification')
   @UseGuards(JwtAuthGuard)
   public getVerificationToken(@User() jwtPayload: JwtPayloadType) {
@@ -146,8 +148,8 @@ export class UsersController {
   /////////////////////////////////////
   // forgot password controllers
   /////////////////////////////////////
-
   //Post :~/api/users/forgot-password
+  @Throttle({ short: { limit: 1, ttl: 60000 } })
   @Post('forgot-password')
   async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
     return this.usersService.forgotPassword(forgotPasswordDto.email);
@@ -222,11 +224,12 @@ export class UsersController {
   }
 
   private addRefreshTokenToCookie(res: Response, refreshToken: any) {
+    const isProduction = this.configService.get('NODE_ENV') === 'production';
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
-      //todo edit production to ssl
-      secure: false,
-      sameSite: 'strict',
+      //edit production to ssl
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'strict',
       maxAge:
         +this.configService.get('REFRESH_EXPIRATION_IN_DAYS') *
         24 *

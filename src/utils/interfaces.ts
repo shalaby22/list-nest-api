@@ -44,3 +44,9 @@ export interface AuthenticatedSocket extends Socket {
     userType: string;
   };
 }
+
+export interface EmailJobData {
+  email: string;
+  name: string;
+  url: string;
+}

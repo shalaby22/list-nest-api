@@ -17,6 +17,8 @@ import { Message } from './message.entity';
 @Entity()
 @Unique(['item', 'buyer']) //for indexing also
 @Check(`"buyerId" != "sellerId"`)
+@Index(['seller', 'updatedAt'])
+@Index(['buyer', 'updatedAt'])
 export class Chat {
   @PrimaryGeneratedColumn()
   id: number;
@@ -24,17 +26,14 @@ export class Chat {
   @CreateDateColumn()
   createdAt: Date;
 
-  @Index()
   @UpdateDateColumn()
   updatedAt: Date;
 
   //relations
 
-  @Index()
   @ManyToOne(() => User, (user) => user.sellerChats, {})
   seller: User;
 
-  @Index()
   @ManyToOne(() => User, (user) => user.buyerChats, {})
   buyer: User;
 

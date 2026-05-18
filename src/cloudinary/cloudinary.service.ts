@@ -1,10 +1,18 @@
 import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
 import { v2 as cloudinary } from 'cloudinary';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 @Injectable()
 export class CloudinaryService {
-  constructor(private configService: ConfigService) {}
+  constructor(
+    private configService: ConfigService,
+    @InjectQueue('deleteImage-queue')
+    private deleteImageQueue: Queue,
+    @InjectQueue('deleteFolder-queue')
+    private deleteFolderQueue: Queue,
+  ) {}
 
   generateSignature(itemId: number, userId: number) {
     //made its Lifespan 10 minutes
@@ -21,7 +29,6 @@ export class CloudinaryService {
       },
       this.configService.get<string>('CLOUDINARY_API_SECRET') as string,
     );
-
     return {
       signature,
       timestamp: fakeTimestamp,
@@ -33,26 +40,31 @@ export class CloudinaryService {
   }
 
   async deleteImage(PublicID: string) {
-    // console.log(await cloudinary.api.resource(PublicID));
-    await cloudinary.uploader.destroy(PublicID);
-    //todo can make queue system here to track if deleted and catch errors if there was wrong path
-
-    return 'deleted successfully';
+    // await cloudinary.uploader.destroy(PublicID);
+    await this.deleteImageQueue.add('delete-image', {
+      PublicID: PublicID,
+    });
   }
 
   async deleteFolder(folderPath: string) {
-    await cloudinary.api.delete_resources_by_prefix(folderPath);
-    await cloudinary.api.delete_folder(folderPath);
-    //todo can make queue system here to track if deleted and catch errors if there was wrong path
+    await this.deleteFolderQueue.add('delete-folder', {
+      folderPath: folderPath,
+    });
     return 'deleted successfully';
   }
 
   async imageExists(PublicID: string) {
     try {
       await cloudinary.api.resource(PublicID);
-    } catch (_err) {
-      console.log('not found image');
-
+    } catch (err) {
+      const error = err as {
+        error?: {
+          http_code?: number;
+        };
+      };
+      if (!(error.error?.http_code === 404)) {
+        console.log(error);
+      }
       return false;
     }
     return true;
@@ -93,3 +105,5 @@ export class CloudinaryService {
     return (await cloudinary.api.delete_resources(PublicIds)) as unknown;
   }
 }
+
+//todo edit saving queues logs in redis in the future to spare storage

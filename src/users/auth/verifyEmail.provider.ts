@@ -10,6 +10,8 @@ import { Repository } from 'typeorm';
 import { MailerService } from '@nestjs-modules/mailer';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 @Injectable()
 export class VerifyEmailProvider {
@@ -20,24 +22,27 @@ export class VerifyEmailProvider {
 
     private configService: ConfigService,
     private readonly mailerService: MailerService,
+    @InjectQueue('verifyEmail-queue')
+    private emailQueue: Queue,
   ) {}
 
-  private async sendVerificationEmail(
-    email: string,
-    name: string,
-    verificationUrl: string,
-  ) {
-    await this.mailerService.sendMail({
-      to: email,
-      from: `<admin@nestList.com>`,
-      subject: 'Welcome to ListNest - Verify Your Account',
-      template: 'verify-email',
-      context: {
-        name: name,
-        url: verificationUrl,
-      },
-    });
-  }
+  //todo delete safely
+  // private async sendVerificationEmail(
+  //   email: string,
+  //   name: string,
+  //   verificationUrl: string,
+  // ) {
+  //   await this.mailerService.sendMail({
+  //     to: email,
+  //     from: `<admin@nestList.com>`,
+  //     subject: 'Welcome to ListNest - Verify Your Account',
+  //     template: 'verify-email',
+  //     context: {
+  //       name: name,
+  //       url: verificationUrl,
+  //     },
+  //   });
+  // }
 
   async getVerificationToken(id: number) {
     const user = await this.usersRepository.findOneBy({ id });
@@ -55,7 +60,13 @@ export class VerifyEmailProvider {
       ) as StringValue,
     });
     const url = `${this.configService.get<string>('APP_HOST')}/api/users/verify-email?token=${token}`;
-    await this.sendVerificationEmail(user.email, user.username, url);
+
+    await this.emailQueue.add('send-verify-email', {
+      email: user.email,
+      name: user.username,
+      url,
+    });
+    // await this.sendVerificationEmail(user.email, user.username, url);
     return 'sent you an email check your inbox';
   }
 
