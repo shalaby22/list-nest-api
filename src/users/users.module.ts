@@ -70,7 +70,18 @@ import { verifyEmailProcessor } from './auth/queues/verifyEmail.processor';
         const redisUrl = configService.get<string>('REDIS_URL');
 
         if (redisUrl) {
-          return new Redis(redisUrl);
+          const parsedUrl = new URL(redisUrl);
+
+          return new Redis({
+            host: parsedUrl.hostname,
+            port: Number(parsedUrl.port),
+            password: parsedUrl.password,
+            username: parsedUrl.username || 'default',
+            maxRetriesPerRequest: null,
+            keepAlive: 30000,
+            connectTimeout: 30000,
+            retryStrategy: (times: number) => Math.min(times * 100, 3000),
+          });
         } else {
           return new Redis({
             host: configService.get<string>('REDIS_HOST'),

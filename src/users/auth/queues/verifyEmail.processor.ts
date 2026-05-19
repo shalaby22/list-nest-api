@@ -14,8 +14,7 @@ export class verifyEmailProcessor extends WorkerHost {
 
     await this.mailerService.sendMail({
       to: email,
-      from: `<admin@nestList.com>`,
-      subject: 'Welcome to ListNest - Verify Your Account',
+      subject: 'ACCOUNT VERIFICATION - LIST NEST',
       template: 'verify-email',
       context: {
         name: name,

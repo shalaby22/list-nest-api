@@ -18,11 +18,14 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { BullModule } from '@nestjs/bullmq';
 import { dataSourceOptions } from '../db/data.source';
 // console.log(dataSourceOptions);
+import { config } from 'dotenv';
+config({ path: '.env' });
 
 @Module({
   imports: [
     UsersModule,
     ConfigModule.forRoot({
+      ignoreEnvFile: process.env.NODE_ENV === 'production',
       envFilePath: '.env.development.local',
       isGlobal: true,
     }),
@@ -58,19 +61,39 @@ import { dataSourceOptions } from '../db/data.source';
       useFactory: (configService: ConfigService) => {
         const redisUrl = configService.get<string>('REDIS_URL');
 
-        let connectionOptions = {
+        let connectionOptions: {
+          host?: string;
+          port?: number;
+          password?: string;
+          username?: string;
+          tls?: any;
+          db?: number;
+          keepAlive?: number;
+          connectTimeout?: number;
+          retryStrategy?: any;
+          maxRetriesPerRequest?: any;
+        } = {
           host: configService.get<string>('REDIS_HOST'),
           port: configService.get<number>('REDIS_PORT'),
           db: 2,
         };
+        console.log('here' + redisUrl);
 
         if (redisUrl) {
           const parsedUrl = new URL(redisUrl);
+          console.log('here2');
           console.log(parsedUrl);
+
           connectionOptions = {
             host: parsedUrl.hostname,
             port: Number(parsedUrl.port),
-            db: 2,
+            password: parsedUrl.password,
+            username: parsedUrl.username,
+            db: 0,
+            maxRetriesPerRequest: null,
+            keepAlive: 30000,
+            connectTimeout: 30000,
+            retryStrategy: (times: number) => Math.min(times * 100, 3000),
             //todo check if redis render need password
           };
         }

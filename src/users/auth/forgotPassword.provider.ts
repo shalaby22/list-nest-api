@@ -9,10 +9,12 @@ import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class ForgotPasswordProvider {
   constructor(
+    private readonly mailerService: MailerService,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
     private configService: ConfigService,
@@ -22,22 +24,21 @@ export class ForgotPasswordProvider {
   ) {}
 
   //todo delete safely
-  // private async sendPasswordResetEmail(
-  //   email: string,
-  //   name: string,
-  //   url: string,
-  // ) {
-  //   await this.mailerService.sendMail({
-  //     to: email,
-  //     from: `<admin@nestList.com>`,
-  //     subject: 'RESET PASSWORD - LIST NEST',
-  //     template: 'forgot-password',
-  //     context: {
-  //       name: name,
-  //       url: url,
-  //     },
-  //   });
-  // }
+  private async sendPasswordResetEmail(
+    email: string,
+    name: string,
+    url: string,
+  ) {
+    await this.mailerService.sendMail({
+      to: email,
+      subject: 'RESET PASSWORD - LIST NEST',
+      template: 'forgot-password',
+      context: {
+        name: name,
+        url: url,
+      },
+    });
+  }
 
   async forgotPassword(email: string) {
     const user = await this.usersRepository.findOneBy({ email });
@@ -60,6 +61,7 @@ export class ForgotPasswordProvider {
     const resetUrl = `${this.configService.get<string>('APP_HOST')}/front-end/reset-password?token=${resetToken}`;
 
     // await this.sendPasswordResetEmail(user.email, user.username, resetUrl);
+
     await this.emailQueue.add('send-reset-password', {
       email: user.email,
       name: user.username,

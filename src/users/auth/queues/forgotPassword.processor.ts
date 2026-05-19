@@ -14,7 +14,6 @@ export class ForgotPasswordProcessor extends WorkerHost {
 
     await this.mailerService.sendMail({
       to: email,
-      from: `<admin@nestList.com>`,
       subject: 'RESET PASSWORD - LIST NEST',
       template: 'forgot-password',
       context: {

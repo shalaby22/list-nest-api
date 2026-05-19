@@ -61,6 +61,8 @@ export class VerifyEmailProvider {
     });
     const url = `${this.configService.get<string>('APP_HOST')}/api/users/verify-email?token=${token}`;
 
+    console.log('i am here before send-verify queue');
+
     await this.emailQueue.add('send-verify-email', {
       email: user.email,
       name: user.username,
