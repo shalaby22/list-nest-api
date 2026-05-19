@@ -23,7 +23,7 @@ import nodemailerSendgrid from 'nodemailer-sendgrid';
           },
 
           defaults: {
-            from: '"ListNest" <m.messm45@gmail.com>',
+            from: `"ListNest" <${config.get<string>('GMAIL_APP_EMAIL')}>`,
           },
         };
       },
