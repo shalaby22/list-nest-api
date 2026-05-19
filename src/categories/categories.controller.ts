@@ -18,6 +18,7 @@ import { JwtAuthGuard } from '../users/auth/guards/jwt-auth.guard';
 import { UserType } from '../utils/enums';
 import { RolesGuard } from '../users/auth/guards/roles.guard';
 import { FindCategoryItemsDto } from './dto/find-category-items-query.dto';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 
 @Controller('api/categories')
 export class CategoriesController {
@@ -26,21 +27,31 @@ export class CategoriesController {
   @Post()
   @Roles([UserType.ADMIN])
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: '(Admin only) Create a new category',
+  })
   create(@Body() createCategoryDto: CreateCategoryDto) {
     return this.categoriesService.create(createCategoryDto);
   }
 
   @Get()
+  @ApiOperation({ summary: 'Get all categories tree' })
   findAll() {
     return this.categoriesService.findAll();
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get a specific category by ID' })
   findOne(@Param('id') id: string) {
     return this.categoriesService.findOne(+id);
   }
 
   @Get(':id/items')
+  @ApiOperation({
+    summary:
+      'Get all items belonging to a specific category with pagination and filters',
+  })
   findOneWithItems(
     @Param('id', ParseIntPipe) id: number,
     @Query() findCategoryItemsDto: FindCategoryItemsDto,
@@ -49,6 +60,10 @@ export class CategoriesController {
   }
 
   @Put(':id')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: '(Admin only) Update category by ID',
+  })
   @Roles([UserType.ADMIN])
   @UseGuards(JwtAuthGuard, RolesGuard)
   update(
@@ -59,6 +74,10 @@ export class CategoriesController {
   }
 
   @Delete(':id')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: '(Admin only) Delete category by ID',
+  })
   @Roles([UserType.ADMIN])
   @UseGuards(JwtAuthGuard, RolesGuard)
   remove(@Param('id', ParseIntPipe) id: number) {
