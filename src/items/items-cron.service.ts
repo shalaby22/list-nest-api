@@ -24,14 +24,16 @@ export class ItemsCronService {
   ) {}
   private readonly logger = new Logger(ItemsCronService.name);
 
-  //   @Cron(CronExpression.EVERY_10_SECONDS)
-  //   handleCron() {
-  //     this.logger.debug('Called every 10 seconds');
-  //   }
+  // @Cron(CronExpression.EVERY_30_SECONDS)
+  // handleCron() {
+  //   this.logger.log('started cron job EVERY_30_SECONDS');
+  //   console.log('normal:started cron job  EVERY_30_SECONDS');
+  // }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async expireOldItems() {
     this.logger.log('started cron job on date items check for expiration');
+    console.log('normal:started cron job on date items check for expiration');
 
     const constDaysAgo = new Date();
     constDaysAgo.setDate(constDaysAgo.getDate() - DAYS_TO_EXPIRE_ITEM);
