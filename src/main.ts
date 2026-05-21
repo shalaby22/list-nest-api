@@ -3,6 +3,8 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import helmet from 'helmet';
+import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -10,6 +12,7 @@ async function bootstrap() {
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
   );
   app.enableCors();
+  app.use(helmet());
   app.use(cookieParser());
 
   const config = new DocumentBuilder()
@@ -23,9 +26,13 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, document);
 
   await app.listen(process.env.PORT || 3000, '0.0.0.0');
+  Logger.log(
+    `Application successfully started on port ${process.env.PORT || 3000}`,
+    'Bootstrap',
+  );
 }
 
-bootstrap().catch((err) => {
-  console.error('Failed to start application:', err);
-  // process.exit(1); // Exit with failure code
+bootstrap().catch((err: { stack: any }) => {
+  Logger.error('Failed to start application', err.stack, 'Bootstrap');
+  process.exit(1);
 });

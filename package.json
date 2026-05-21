@@ -50,6 +50,7 @@
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.4.2",
     "ejs": "^5.0.2",
+    "helmet": "^8.1.0",
     "ioredis": "^5.10.1",
     "nodemailer": "^8.0.7",
     "nodemailer-brevo-transport": "^2.2.1",

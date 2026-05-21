@@ -17,7 +17,6 @@ import { MailModule } from './mail/mail.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BullModule } from '@nestjs/bullmq';
 import { dataSourceOptions } from '../db/data.source';
-// console.log(dataSourceOptions);
 import { config } from 'dotenv';
 config({ path: '.env' });
 
@@ -60,7 +59,6 @@ config({ path: '.env' });
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         const redisUrl = configService.get<string>('REDIS_URL');
-
         let connectionOptions: {
           host?: string;
           port?: number;
@@ -77,13 +75,8 @@ config({ path: '.env' });
           port: configService.get<number>('REDIS_PORT'),
           db: 2,
         };
-        console.log('here' + redisUrl);
-
         if (redisUrl) {
           const parsedUrl = new URL(redisUrl);
-          console.log('here2');
-          console.log(parsedUrl);
-
           connectionOptions = {
             host: parsedUrl.hostname,
             port: Number(parsedUrl.port),
@@ -94,7 +87,6 @@ config({ path: '.env' });
             keepAlive: 30000,
             connectTimeout: 30000,
             retryStrategy: (times: number) => Math.min(times * 100, 3000),
-            //todo check if redis render need password
           };
         }
 
