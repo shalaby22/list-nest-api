@@ -37,7 +37,7 @@ export class MailModule {}
 //             service: 'gmail',
 //             // host: config.get<string>('MAIL_HOST'),
 //             // port: config.get<number>('MAIL_PORT'),
-//             // secure: false, // todo deployment change to gmail APP and set validation on email registration
+//             // secure: false, // deployment change to gmail APP and set validation on email registration
 //             // tls: {
 //             //   rejectUnauthorized: false,
 //             // },

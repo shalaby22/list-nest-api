@@ -39,10 +39,9 @@ export const getRedisConnectionOptions = (
   // local development
   return {
     host: configService.get<string>('REDIS_HOST'),
-    port: configService.get<string>('REDIS_PORT'),
+    port: configService.get<number>('REDIS_PORT'),
   };
 };
-
 export const registerRedisEvents = (client: Redis, context: string) => {
   client.on('close', () =>
     logger.warn(`[${context}] Connection lost — queuing commands`),

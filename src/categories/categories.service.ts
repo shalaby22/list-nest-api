@@ -102,7 +102,6 @@ export class CategoriesService {
     const items = await this.itemsService.findAllForAdmins({ category: id });
 
     if (items.totalItems) {
-      console.log(items);
       throw new BadRequestException(
         'there are items in that category you have delete them first',
       );

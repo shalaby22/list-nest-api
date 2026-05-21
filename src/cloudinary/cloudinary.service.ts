@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { v2 as cloudinary } from 'cloudinary';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
@@ -12,6 +12,7 @@ export class CloudinaryService {
     private deleteImageQueue: Queue,
     @InjectQueue('deleteFolder-queue')
     private deleteFolderQueue: Queue,
+    private readonly logger = new Logger('CloudinaryService'),
   ) {}
 
   generateSignature(itemId: number, userId: number) {
@@ -63,7 +64,9 @@ export class CloudinaryService {
         };
       };
       if (!(error.error?.http_code === 404)) {
-        console.log(error);
+        this.logger.error(
+          `something went wrong when checking if image exists ${JSON.stringify(error)}`,
+        );
       }
       return false;
     }
@@ -87,7 +90,6 @@ export class CloudinaryService {
         resources: { public_id: string }[];
         next_cursor: any;
       };
-      // console.log(recentUploads.resources);
 
       const batchIds: string[] = recentUploads.resources.map((img) => {
         return `https://res.cloudinary.com/${this.configService.get<string>('CLOUDINARY_NAME')}/${img.public_id}`;
@@ -105,5 +107,3 @@ export class CloudinaryService {
     return (await cloudinary.api.delete_resources(PublicIds)) as unknown;
   }
 }
-
-//todo edit saving queues logs in redis in the future to spare storage

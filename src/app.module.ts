@@ -12,12 +12,14 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { ChatsModule } from './chats/chats.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { MailModule } from './mail/mail.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BullModule } from '@nestjs/bullmq';
 import { dataSourceOptions } from '../db/data.source';
 import { config } from 'dotenv';
+import { getRedisConnectionOptions } from '../db/redis.config';
+import { AllExceptionsFilter } from './utils/all-exceptions.filter';
 config({ path: '.env' });
 
 @Module({
@@ -57,43 +59,9 @@ config({ path: '.env' });
     MailModule,
     BullModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        const redisUrl = configService.get<string>('REDIS_URL');
-        let connectionOptions: {
-          host?: string;
-          port?: number;
-          password?: string;
-          username?: string;
-          tls?: any;
-          db?: number;
-          keepAlive?: number;
-          connectTimeout?: number;
-          retryStrategy?: any;
-          maxRetriesPerRequest?: any;
-        } = {
-          host: configService.get<string>('REDIS_HOST'),
-          port: configService.get<number>('REDIS_PORT'),
-          db: 2,
-        };
-        if (redisUrl) {
-          const parsedUrl = new URL(redisUrl);
-          connectionOptions = {
-            host: parsedUrl.hostname,
-            port: Number(parsedUrl.port),
-            password: parsedUrl.password,
-            username: parsedUrl.username,
-            db: 0,
-            maxRetriesPerRequest: null,
-            keepAlive: 30000,
-            connectTimeout: 30000,
-            retryStrategy: (times: number) => Math.min(times * 100, 3000),
-          };
-        }
-
-        return {
-          connection: connectionOptions,
-        };
-      },
+      useFactory: (configService: ConfigService) => ({
+        connection: getRedisConnectionOptions(configService, true),
+      }),
     }),
   ],
   controllers: [AppController],
@@ -102,6 +70,10 @@ config({ path: '.env' });
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter,
     },
   ],
 })

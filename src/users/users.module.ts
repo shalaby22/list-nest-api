@@ -23,6 +23,11 @@ import { ForgotPasswordProvider } from './auth/forgotPassword.provider';
 import { BullModule } from '@nestjs/bullmq';
 import { ForgotPasswordProcessor } from './auth/queues/forgotPassword.processor';
 import { verifyEmailProcessor } from './auth/queues/verifyEmail.processor';
+import {
+  getRedisConnectionOptions,
+  registerRedisEvents,
+} from '../../db/redis.config';
+import { QueueUsersEventsService } from './auth/queues/queue-events.service';
 
 @Module({
   controllers: [UsersController],
@@ -45,15 +50,24 @@ import { verifyEmailProcessor } from './auth/queues/verifyEmail.processor';
     BullModule.registerQueue(
       {
         name: 'forgotPassword-queue',
+        defaultJobOptions: {
+          removeOnComplete: true,
+          removeOnFail: 100,
+        },
       },
       {
         name: 'verifyEmail-queue',
+        defaultJobOptions: {
+          removeOnComplete: true,
+          removeOnFail: 100,
+        },
       },
     ),
   ],
   providers: [
     ForgotPasswordProcessor,
     verifyEmailProcessor,
+    QueueUsersEventsService,
     UsersService,
     UsersProvider,
     AuthProvider,
@@ -67,27 +81,11 @@ import { verifyEmailProcessor } from './auth/queues/verifyEmail.processor';
     {
       provide: REDIS_CLIENT,
       useFactory: (configService: ConfigService) => {
-        const redisUrl = configService.get<string>('REDIS_URL');
-
-        if (redisUrl) {
-          const parsedUrl = new URL(redisUrl);
-
-          return new Redis({
-            host: parsedUrl.hostname,
-            port: Number(parsedUrl.port),
-            password: parsedUrl.password,
-            username: parsedUrl.username || 'default',
-            maxRetriesPerRequest: null,
-            keepAlive: 30000,
-            connectTimeout: 30000,
-            retryStrategy: (times: number) => Math.min(times * 100, 3000),
-          });
-        } else {
-          return new Redis({
-            host: configService.get<string>('REDIS_HOST'),
-            port: configService.get<number>('REDIS_PORT'),
-          });
-        }
+        const client = new Redis(
+          getRedisConnectionOptions(configService, false),
+        );
+        registerRedisEvents(client, 'Auth');
+        return client;
       },
       inject: [ConfigService],
     },

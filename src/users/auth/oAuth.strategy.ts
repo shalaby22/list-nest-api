@@ -26,10 +26,6 @@ export class googleStrategy extends PassportStrategy(Strategy) {
     });
   }
   async validate(accessToken: string, refreshToken: string, profile: Profile) {
-    // console.log(accessToken);
-    // console.log(refreshToken);
-    // console.log(profile);
-
     if (!profile)
       throw new BadRequestException('there is a problem with google auth');
 

@@ -31,7 +31,6 @@ export class RefreshTokenStoreProvider {
     await this.redisClient.sadd(`user_sessions:${userId}`, hash);
     await this.redisClient.expire(`user_sessions:${userId}`, expiresInSeconds);
 
-    // console.log("'added to redis successfully'");
     return 'added to redis successfully';
   }
 

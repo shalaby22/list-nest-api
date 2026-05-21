@@ -251,7 +251,6 @@ export class ItemsService {
 
     //execute query
     let items = {};
-    // console.log(sqlLine.getQuery());
 
     if (findItemsDto.lat && findItemsDto.lng) {
       const { entities, raw } = await sqlLine.getRawAndEntities();
@@ -429,7 +428,6 @@ export class ItemsService {
 
     //------
     const itemImagesLinks = item.images.map((ele) => ele.link);
-    // console.log(itemImagesLinks);
     const notAddedImages: string[] = [];
     const newImages: ImageItem[] = [];
     for (let i = 0; i < addImagesToItemDto.imageIds.length; i++) {
@@ -459,7 +457,6 @@ export class ItemsService {
         `https://api.maptiler.com/geocoding/${longitude},${latitude}.json?key=${this.configService.get('MAPTILER_KEY')}&language=en`,
       ),
     );
-    // console.log(responseData.data);
     const location = responseData.data;
     if (!location.features.length)
       throw new BadRequestException('not found your location on map');

@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { deleteImageProcessor } from './queues/deleteImage.processor';
 import { BullModule } from '@nestjs/bullmq';
 import { deleteFolderProcessor } from './queues/deleteFolder.processor';
+import { QueueCloudinaryEventsService } from './queues/queue-events.service';
 
 @Module({
   providers: [
@@ -22,15 +23,24 @@ import { deleteFolderProcessor } from './queues/deleteFolder.processor';
     CloudinaryService,
     deleteImageProcessor,
     deleteFolderProcessor,
+    QueueCloudinaryEventsService,
   ],
   exports: [CloudinaryService],
   imports: [
     BullModule.registerQueue(
       {
         name: 'deleteImage-queue',
+        defaultJobOptions: {
+          removeOnComplete: true,
+          removeOnFail: 100,
+        },
       },
       {
         name: 'deleteFolder-queue',
+        defaultJobOptions: {
+          removeOnComplete: true,
+          removeOnFail: 100,
+        },
       },
     ),
   ],

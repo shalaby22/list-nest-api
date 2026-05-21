@@ -17,7 +17,8 @@ export const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
   url: process.env.DATABASE_URL,
   synchronize: false,
-  logging: false,
+  logging: ['error', 'warn'],
+  logger: 'advanced-console',
   entities: [
     User,
     Category,

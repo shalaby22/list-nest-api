@@ -27,14 +27,11 @@ export class ItemsCronService {
   // @Cron(CronExpression.EVERY_30_SECONDS)
   // handleCron() {
   //   this.logger.log('started cron job EVERY_30_SECONDS');
-  //   console.log('normal:started cron job  EVERY_30_SECONDS');
   // }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async expireOldItems() {
     this.logger.log('started cron job on date items check for expiration');
-    console.log('normal:started cron job on date items check for expiration');
-
     const constDaysAgo = new Date();
     constDaysAgo.setDate(constDaysAgo.getDate() - DAYS_TO_EXPIRE_ITEM);
 
@@ -101,7 +98,7 @@ export class ItemsCronService {
       (link) => !knownImages.includes(link),
     );
     if (orphanLinks.length > 0) {
-      console.log(orphanLinks);
+      this.logger.log(`found those images to delete ${orphanLinks.toString()}`);
       orphanLinks = orphanLinks.map((ele) => {
         return ele.split(`${this.configService.get('CLOUDINARY_NAME')}/`)[1];
       });

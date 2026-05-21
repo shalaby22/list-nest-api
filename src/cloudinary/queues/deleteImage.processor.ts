@@ -1,31 +1,33 @@
-import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
+import { OnWorkerEvent, Processor } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { v2 as cloudinary } from 'cloudinary';
+import { BaseWorker } from '../../utils/base.worker';
 
 @Processor('deleteImage-queue')
-export class deleteImageProcessor extends WorkerHost {
+export class deleteImageProcessor extends BaseWorker {
   async process(job: Job<{ PublicID: string }, any, string>): Promise<any> {
     const { PublicID } = job.data;
-    console.log(`started deleting image of of publicId ${PublicID}`);
-
+    this.logger.log(`Started deleting image of publicId ${PublicID}`);
     await cloudinary.uploader.destroy(
       PublicID,
-      (error, result: { result: string }) => {
+      (error: Error, result: { result: string }) => {
         //{ result: 'not found' } or { result: 'ok' } no error if not found
         if (result.result === 'not found') {
-          console.log(`can not found image of ${PublicID}`);
+          this.logger.warn(`Cannot find image of ${PublicID}`);
         } else if (result.result === 'ok') {
-          console.log(`deleted image of publicId ${PublicID} successfully `);
+          this.logger.log(`Deleted image of publicId ${PublicID} successfully`);
         } else {
-          console.log(result, error);
+          this.logger.error(
+            `Unexpected result while deleting ${PublicID}: ${JSON.stringify(result)}`,
+            error ? error.toString() : '',
+          );
         }
       },
     );
-    //todo transfer console logs from queues and cron to actual logs
   }
 
   @OnWorkerEvent('failed')
   onFailed(job: Job, err: Error) {
-    console.error(`Job ${job?.id} failed with error:`, err.message);
+    this.logger.error(`Job ${job?.id} failed with error: ${err.message}`);
   }
 }
