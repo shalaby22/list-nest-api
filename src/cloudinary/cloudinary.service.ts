@@ -12,9 +12,9 @@ export class CloudinaryService {
     private deleteImageQueue: Queue,
     @InjectQueue('deleteFolder-queue')
     private deleteFolderQueue: Queue,
-    private readonly logger = new Logger('CloudinaryService'),
   ) {}
 
+  private readonly logger = new Logger('CloudinaryService');
   generateSignature(itemId: number, userId: number) {
     //made its Lifespan 10 minutes
     const desiredLifespan = 60 * 10;
