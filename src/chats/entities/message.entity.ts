@@ -1,4 +1,3 @@
-import { Exclude } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
@@ -27,13 +26,20 @@ export class Message {
   createdAt: Date;
 
   //relations
-
-  @ManyToOne(() => User, (user) => user.sentMessages, {})
+  @ManyToOne(() => User, (user) => user.sentMessages, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
   sender: User;
 
-  @ManyToOne(() => User, (user) => user.receivedMessages, {})
+  @ManyToOne(() => User, (user) => user.receivedMessages, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
   receiver: User;
 
-  @ManyToOne(() => Chat, (chat) => chat.messages, {})
+  @ManyToOne(() => Chat, (chat) => chat.messages, {
+    onDelete: 'CASCADE',
+  })
   chat: Chat;
 }

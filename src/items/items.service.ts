@@ -316,7 +316,7 @@ export class ItemsService {
     let item = await this.findOne(id);
     if (item.user.id !== user.id && user.userType !== UserType.ADMIN) {
       throw new ForbiddenException(
-        'you are not allowed to remove another one item',
+        'you are not allowed to edit another one item',
       );
     }
     //can't edit expired item
