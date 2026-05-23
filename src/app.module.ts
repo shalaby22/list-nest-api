@@ -20,6 +20,7 @@ import { dataSourceOptions } from '../db/data.source';
 import { config } from 'dotenv';
 import { getRedisConnectionOptions } from '../db/redis.config';
 import { AllExceptionsFilter } from './utils/all-exceptions.filter';
+import { envValidationSchema } from './utils/env.validation';
 config({ path: '.env' });
 
 @Module({
@@ -29,6 +30,7 @@ config({ path: '.env' });
       ignoreEnvFile: process.env.NODE_ENV === 'production',
       envFilePath: '.env.development.local',
       isGlobal: true,
+      validationSchema: envValidationSchema,
     }),
     ScheduleModule.forRoot(),
     TypeOrmModule.forRoot(dataSourceOptions),

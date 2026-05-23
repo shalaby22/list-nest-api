@@ -52,9 +52,8 @@
     "ejs": "^5.0.2",
     "helmet": "^8.1.0",
     "ioredis": "^5.10.1",
+    "joi": "^18.2.1",
     "nodemailer": "^8.0.7",
-    "nodemailer-brevo-transport": "^2.2.1",
-    "nodemailer-mailjet-transport": "^1.0.4",
     "nodemailer-sendgrid": "^1.0.3",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
@@ -62,7 +61,6 @@
     "passport-local": "^1.0.0",
     "pg": "^8.20.0",
     "reflect-metadata": "^0.2.2",
-    "resend": "^6.12.3",
     "rxjs": "^7.8.1",
     "swagger-ui-express": "^5.0.1",
     "typeorm": "^0.3.28"

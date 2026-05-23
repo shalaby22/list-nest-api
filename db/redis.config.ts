@@ -1,9 +1,9 @@
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { config } from 'dotenv';
 import Redis from 'ioredis';
+// import { config } from 'dotenv';
+// config({ path: ['.env', '.env.development.local'] });
 
-config({ path: ['.env', '.env.development.local'] });
 const logger = new Logger('RedisConfig');
 
 export const getRedisConnectionOptions = (
@@ -11,8 +11,9 @@ export const getRedisConnectionOptions = (
   isBull: boolean = false,
 ) => {
   const redisUrl = configService.get<string>('REDIS_URL');
+  const isProduction = configService.get<string>('NODE_ENV') === 'production';
 
-  if (redisUrl) {
+  if (redisUrl && isProduction) {
     const { hostname, port, password, username } = new URL(redisUrl);
 
     return {
