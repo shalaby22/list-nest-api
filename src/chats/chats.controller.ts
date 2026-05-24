@@ -58,20 +58,35 @@ When the user opens a specific chat screen, they must join the room to start exc
     return this.chatsService.startConversation(jwtPayload.id, itemId);
   }
 
-  //todo add pagination
   @Get('inbox')
   @ApiOperation({ summary: 'Get current user inbox (list of chats)' })
-  getInbox(@User() jwtPayload: JwtPayloadType) {
-    return this.chatsService.getUserInbox(jwtPayload.id);
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number for chats pagination',
+  })
+  getInbox(
+    @User() jwtPayload: JwtPayloadType,
+    @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+  ) {
+    return this.chatsService.getUserInbox(jwtPayload.id, page);
   }
 
   @Get('inbox/:itemId')
   @ApiOperation({ summary: 'Get current user chats of a specific item' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number for chats pagination',
+  })
   getChatsOfItem(
     @User() jwtPayload: JwtPayloadType,
     @Param('itemId', ParseIntPipe) itemId: number,
+    @Query('page', new ParseIntPipe({ optional: true })) page?: number,
   ) {
-    return this.chatsService.getUserInbox(jwtPayload.id, itemId);
+    return this.chatsService.getUserInbox(jwtPayload.id, page, itemId);
   }
 
   @Get(':chatId')

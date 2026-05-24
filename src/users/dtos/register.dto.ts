@@ -3,6 +3,7 @@ import {
   IsEmail,
   IsMobilePhone,
   IsString,
+  IsStrongPassword,
   MaxLength,
   MinLength,
 } from 'class-validator';
@@ -15,7 +16,7 @@ export class RegisterDto {
   @IsString()
   @IsEmail()
   email: string;
-  //make password and email stronger todo
+  //make password and email stronger
 
   @ApiProperty({
     example: 'StrongPass123!',
@@ -24,6 +25,7 @@ export class RegisterDto {
   })
   @IsString()
   @MinLength(8)
+  @IsStrongPassword()
   password: string;
 
   @ApiProperty({

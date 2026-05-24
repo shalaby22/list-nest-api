@@ -10,7 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Chat } from './entities/chat.entity';
 import { Repository } from 'typeorm';
 import { RawChatData } from '../utils/interfaces';
-import { MESSAGES_PER_PAGE } from '../utils/constants';
+import { CHATS_PER_PAGE, MESSAGES_PER_PAGE } from '../utils/constants';
 
 @Injectable()
 export class ChatsService {
@@ -48,7 +48,6 @@ export class ChatsService {
   }
 
   async getChatMessages(chatId: number, userId: number, page?: number) {
-    //add pagination here todo
     const chat = await this.chatRepository.findOne({
       where: { id: chatId },
       relations: { buyer: true, seller: true, item: true },
@@ -80,7 +79,7 @@ export class ChatsService {
     return { messages, totalMessages };
   }
 
-  async getUserInbox(userId: number, itemId?: number) {
+  async getUserInbox(userId: number, page?: number, itemId?: number) {
     const query = this.chatRepository
       .createQueryBuilder('chat')
       .where('(chat.buyerId = :userId OR chat.sellerId = :userId)', {
@@ -104,6 +103,12 @@ export class ChatsService {
       .leftJoinAndSelect('chat.seller', 'seller')
       .orderBy('chat.updatedAt', 'DESC');
 
+    //for pagination
+    const totalChats = await query.getCount();
+    const limit = CHATS_PER_PAGE;
+    const skip = limit * ((page ?? 1) - 1);
+    query.skip(skip).take(limit);
+
     const { entities, raw } = await query.getRawAndEntities();
     const unreadCountMap = new Map();
     raw.forEach((ele: RawChatData) => {
@@ -118,7 +123,7 @@ export class ChatsService {
       };
     });
 
-    return chats;
+    return { chats, totalChats };
   }
 
   async markMessagesAsRead(chatId: number, receiverId: number) {

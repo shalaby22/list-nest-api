@@ -7,11 +7,15 @@ import {
   WsException,
 } from '@nestjs/websockets';
 import { ChatsService } from './chats.service';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { ParseIntPipe, UseGuards } from '@nestjs/common';
 import { WsJwtGuard } from '../users/auth/guards/ws-jwt-auth.guard';
 import type { AuthenticatedSocket } from '../utils/interfaces';
 import { WsThrottlerGuard } from '../users/auth/guards/ws-throttler.guard';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { JwtPayloadType } from '../utils/types';
+import { extractJwtFromSocket } from '../users/auth/ws-jwt.strategy';
 
 @WebSocketGateway({
   namespace: '/api/socket/chats',
@@ -25,11 +29,39 @@ export class ChatsGateway {
   @WebSocketServer()
   server: Server;
 
-  constructor(private readonly chatsService: ChatsService) {}
+  constructor(
+    private readonly chatsService: ChatsService,
+    private configService: ConfigService,
+    private jwtService: JwtService,
+  ) {}
 
-  // handleConnection(client: Socket) {
-  //   // console.log(`Client connected: ${client.id}`);
-  // }
+  afterInit(server: Server) {
+    server.use((client: Socket, next) => {
+      try {
+        const token = extractJwtFromSocket(client);
+        if (!token) throw new Error('Token is missing');
+
+        const secret = this.configService.get<string>('JWT_ACCESS_SECRET');
+        const payload = this.jwtService.verify<JwtPayloadType>(token, {
+          secret,
+        });
+
+        const user = { id: payload.id, userType: payload.userType };
+        if (!user) throw new Error('Invalid user payload');
+
+        client['user'] = user;
+        next();
+      } catch (error: any) {
+        console.log(`Connection rejected: ${error}`);
+        next(new Error(`Connection rejected: ${error}`));
+      }
+    });
+  }
+
+  async handleConnection(client: AuthenticatedSocket) {
+    await client.join(`user_notify_${client.user.id}`);
+    console.log(`User ${client.user.id} joined notification room`);
+  }
 
   // handleDisconnect(client: Socket) {
   //   // console.log(`Client disconnected: ${client.id}`);
@@ -86,11 +118,17 @@ export class ChatsGateway {
       this.server
         .to(payload.chatId.toString())
         .emit('receive_message', savedMessage);
+
+      this.server
+        .to(`user_notify_${receiverId}`)
+        .emit('new_message_notification', {
+          title: 'new message',
+          body: payload.content,
+          chatId: payload.chatId,
+        });
     } catch (error: any) {
       const message = error instanceof Error ? error.message : 'unKnown error';
       throw new WsException(message);
     }
   }
 }
-
-//todo notfication ان جات رسالة وانت برا المحادثات
