@@ -4,6 +4,7 @@ import { CategoriesController } from './categories.controller';
 import { Category } from './entities/category.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ItemsModule } from '../items/items.module';
+import { RedisModule } from '../redis/redis.module';
 
 @Module({
   controllers: [CategoriesController],
@@ -11,6 +12,7 @@ import { ItemsModule } from '../items/items.module';
   imports: [
     TypeOrmModule.forFeature([Category]),
     forwardRef(() => ItemsModule),
+    RedisModule,
   ],
   exports: [CategoriesService],
 })

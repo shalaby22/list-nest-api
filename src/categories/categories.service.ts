@@ -12,6 +12,8 @@ import { Category } from './entities/category.entity';
 import { IsNull, Repository } from 'typeorm';
 import { FindCategoryItemsDto } from './dto/find-category-items-query.dto';
 import { ItemsService } from '../items/items.service';
+import Redis from 'ioredis';
+import { REDIS_CLIENT } from '../utils/constants';
 
 @Injectable()
 export class CategoriesService {
@@ -20,7 +22,9 @@ export class CategoriesService {
     private itemsService: ItemsService,
     @InjectRepository(Category)
     private categoriesRepository: Repository<Category>,
+    @Inject(REDIS_CLIENT) private readonly redisClient: Redis,
   ) {}
+
   public async create(createCategoryDto: CreateCategoryDto) {
     const foundCategory = await this.categoriesRepository.findOneBy({
       title: createCategoryDto.title,
@@ -37,18 +41,34 @@ export class CategoriesService {
       );
     }
     await this.categoriesRepository.save(newCategory);
+    await this.clearCategoriesCache();
 
     return newCategory;
   }
 
-  findAll() {
+  async findAll() {
+    let cachedData: string | Category[] = (await this.redisClient.get(
+      'categories_tree_cache',
+    )) as string;
+
+    if (cachedData && typeof cachedData === 'string') {
+      cachedData = JSON.parse(cachedData) as Category[];
+      // console.log('[Cache] Fetched from Redis');
+    } else {
+      const categories = await this.categoriesRepository.find({
+        where: { parentCategory: IsNull() },
+        relations: { childCategories: true },
+      });
+      await this.redisClient.set(
+        'categories_tree_cache',
+        JSON.stringify(categories),
+        'EX',
+        24 * 60 * 60,
+      );
+      cachedData = categories;
+    }
     //todo add here caching
-    return this.categoriesRepository.find({
-      where: { parentCategory: IsNull() },
-      relations: {
-        childCategories: true,
-      },
-    });
+    return cachedData;
   }
 
   async findOne(id: number) {
@@ -94,6 +114,7 @@ export class CategoriesService {
       updateCategoryDto.description ?? category.description;
 
     await this.categoriesRepository.save(category);
+    await this.clearCategoriesCache();
 
     return category;
   }
@@ -107,6 +128,7 @@ export class CategoriesService {
       );
     }
     await this.categoriesRepository.remove(category);
+    await this.clearCategoriesCache();
     return `removed successfully`;
   }
 
@@ -126,5 +148,10 @@ export class CategoriesService {
     } else {
       return category;
     }
+  }
+
+  private async clearCategoriesCache() {
+    await this.redisClient.del('categories_tree_cache');
+    // console.log('[Cache] Cleared');
   }
 }

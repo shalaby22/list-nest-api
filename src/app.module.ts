@@ -18,9 +18,10 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { BullModule } from '@nestjs/bullmq';
 import { dataSourceOptions } from '../db/data.source';
 import { config } from 'dotenv';
-import { getRedisConnectionOptions } from '../db/redis.config';
+import { getRedisConnectionOptions } from './redis/redis.config';
 import { AllExceptionsFilter } from './utils/all-exceptions.filter';
 import { envValidationSchema } from './utils/env.validation';
+import { RedisModule } from './redis/redis.module';
 config({ path: '.env' });
 
 @Module({
@@ -39,6 +40,7 @@ config({ path: '.env' });
     CloudinaryModule,
     WishlistModule,
     ChatsModule,
+    RedisModule,
     ThrottlerModule.forRoot({
       throttlers: [
         {

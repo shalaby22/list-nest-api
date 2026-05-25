@@ -11,10 +11,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './auth/jwt.strategy';
 import { googleStrategy } from './auth/oAuth.strategy';
-import { Redis } from 'ioredis';
-import { REDIS_CLIENT } from '../utils/constants';
 import { RefreshTokenStoreProvider } from './auth/RefreshToken.provider';
-
 import type { StringValue } from 'ms';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { WsJwtStrategy } from './auth/ws-jwt.strategy';
@@ -23,15 +20,20 @@ import { ForgotPasswordProvider } from './auth/forgotPassword.provider';
 import { BullModule } from '@nestjs/bullmq';
 import { ForgotPasswordProcessor } from './auth/queues/forgotPassword.processor';
 import { verifyEmailProcessor } from './auth/queues/verifyEmail.processor';
-import {
-  getRedisConnectionOptions,
-  registerRedisEvents,
-} from '../../db/redis.config';
+// import { Redis } from 'ioredis';
+// import {
+//   getRedisConnectionOptions,
+//   registerRedisEvents,
+// } from '../redis/redis.config';
+// import { REDIS_CLIENT } from '../utils/constants';
+
 import { QueueUsersEventsService } from './auth/queues/queue-events.service';
+import { RedisModule } from '../redis/redis.module';
 
 @Module({
   controllers: [UsersController],
   imports: [
+    RedisModule,
     CloudinaryModule,
     TypeOrmModule.forFeature([User]),
     PassportModule,
@@ -78,18 +80,18 @@ import { QueueUsersEventsService } from './auth/queues/queue-events.service';
     WsJwtStrategy,
     RefreshTokenStoreProvider,
     googleStrategy,
-    {
-      provide: REDIS_CLIENT,
-      useFactory: (configService: ConfigService) => {
-        const client = new Redis(
-          getRedisConnectionOptions(configService, false),
-        );
-        registerRedisEvents(client, 'Auth');
-        return client;
-      },
-      inject: [ConfigService],
-    },
+    // {
+    //   provide: REDIS_CLIENT,
+    //   useFactory: (configService: ConfigService) => {
+    //     const client = new Redis(
+    //       getRedisConnectionOptions(configService, false),
+    //     );
+    //     registerRedisEvents(client, 'Auth');
+    //     return client;
+    //   },
+    //   inject: [ConfigService],
+    // },
   ],
-  exports: [REDIS_CLIENT, UsersService],
+  exports: [UsersService],
 })
 export class UsersModule {}
