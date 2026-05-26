@@ -575,8 +575,8 @@ export class ItemsService {
    * Extracts the full geographic layout dictionary mappings populated within the database.
    * @returns Relational array mapping nested Countries enclosing Regions enclosing Cities.
    */
-  getAllLocations() {
-    const locations = this.countryRepository.find({
+  async getAllLocations() {
+    const locations = await this.countryRepository.find({
       relations: { regions: { cities: true } },
     });
     return { locations };
