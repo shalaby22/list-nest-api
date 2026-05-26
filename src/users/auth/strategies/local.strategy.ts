@@ -6,10 +6,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { User } from '../users.entity';
+import { User } from '../../users.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RefreshTokenStoreProvider } from './RefreshToken.provider';
+import { RefreshTokenStoreProvider } from '../RefreshToken.provider';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
@@ -31,15 +31,6 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
 
   //validate user for login
   async validateUser(email: string, hashedPassword: string): Promise<User> {
-    // const user = await this.usersRepository.findOne({
-    //   where: { email: email },
-    //   select: {
-    //     id: true,
-    //     email: true,
-    //     password: true,
-    //     userType: true,
-    //   },
-    // });
     const user = await this.usersRepository
       .createQueryBuilder('user')
       .addSelect('user.password')

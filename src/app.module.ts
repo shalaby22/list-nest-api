@@ -3,10 +3,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CategoriesModule } from './categories/categories.module';
-
 import { ItemsModule } from './items/items.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { WishlistModule } from './wishlist/wishlist.module';
@@ -27,12 +25,6 @@ config({ path: '.env' });
 @Module({
   imports: [
     UsersModule,
-    ConfigModule.forRoot({
-      ignoreEnvFile: process.env.NODE_ENV === 'production',
-      envFilePath: '.env.development.local',
-      isGlobal: true,
-      validationSchema: envValidationSchema,
-    }),
     ScheduleModule.forRoot(),
     TypeOrmModule.forRoot(dataSourceOptions),
     CategoriesModule,
@@ -41,6 +33,13 @@ config({ path: '.env' });
     WishlistModule,
     ChatsModule,
     RedisModule,
+    MailModule,
+    ConfigModule.forRoot({
+      ignoreEnvFile: process.env.NODE_ENV === 'production',
+      envFilePath: '.env.development.local',
+      isGlobal: true,
+      validationSchema: envValidationSchema,
+    }),
     ThrottlerModule.forRoot({
       throttlers: [
         {
@@ -60,7 +59,6 @@ config({ path: '.env' });
         },
       ],
     }),
-    MailModule,
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({

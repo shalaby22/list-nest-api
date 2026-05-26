@@ -28,10 +28,12 @@ export class AuthProvider {
     private readonly mailerService: MailerService,
   ) {}
 
+  // =========================================================================
+
   /**
-   * Register new user
-   * @param registerDto
-   * @returns user with token
+   * Registers a new user
+   * @param registerDto - The payload containing new user details
+   * @returns The newly created user with access and refresh tokens
    */
   async Register(registerDto: RegisterDto) {
     const foundUser = await this.usersRepository.findOne({
@@ -51,24 +53,28 @@ export class AuthProvider {
       password: hash,
     });
     const resultUser = await this.usersRepository.save(user);
-    const userWithToken = this.login(resultUser);
-    await this.verifyEmailProvider.getVerificationToken(resultUser.id);
-    return userWithToken;
+    const result = this.login(resultUser);
+    // await this.verifyEmailProvider.getVerificationToken(resultUser.id);
+    // didn't send verify Email for all when registered because oAuth needs to add phone number first
+    return result;
   }
 
+  // =========================================================================
+
   /**
-   *login functions depends on passport guard on local strategy
-   *its job : adding jwt token to user
-   * @param user
-   * @returns user with token
+   * Attaches JWT access and refresh tokens to an authenticated user instance.
+   * depends on passport guard on local strategy
+   * @param user - The authenticated user entity
+   * @returns The user with with active tokens
    */
   async login(user: User) {
     const payload = { id: user.id, userType: user.userType };
     const refreshToken = await this.makeRefreshToken(payload);
-    user['access_token'] = this.jwtService.sign(payload);
-    user['refreshToken'] = refreshToken;
-    return user;
+    const accessToken = this.jwtService.sign(payload);
+    return { user, accessToken, refreshToken };
   }
+
+  // =========================================================================
 
   /**
    * refresh access token
@@ -91,11 +97,18 @@ export class AuthProvider {
 
     if (!user) throw new UnauthorizedException('not found this user');
     const payload = { id: user.id, userType: user.userType };
-    user['access_token'] = this.jwtService.sign(payload);
+    const accessToken = this.jwtService.sign(payload);
 
-    return user;
+    return { user, accessToken };
   }
 
+  // =========================================================================
+
+  /**
+   * Generates secure random string (Refresh Token).
+   * @param payload - JwtPayloadType
+   * @returns The plain refresh token
+   */
   private async makeRefreshToken(payload: JwtPayloadType) {
     const refreshToken = crypto.randomBytes(32).toString('hex');
     await this.refreshTokenStoreProvider.storeRefreshToken(
@@ -104,6 +117,10 @@ export class AuthProvider {
     );
     return refreshToken;
   }
+
+  // =========================================================================
+  // DELEGATION METHODS
+  // =========================================================================
 
   deleteRefreshToken(userId: number, refreshToken: string) {
     return this.refreshTokenStoreProvider.deleteRefreshToken(

@@ -32,6 +32,13 @@ import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 export class ItemsController {
   constructor(private readonly itemsService: ItemsService) {}
 
+  // =========================================================================
+
+  /**
+   * [POST] /api/items
+   * Access: verified Users
+   * Description: Create a new item (Draft or Active based on signature flag)
+   */
   @Post()
   @Throttle({ default: { limit: 2, ttl: 60000 } })
   @UseGuards(JwtAuthGuard)
@@ -48,37 +55,35 @@ export class ItemsController {
     return this.itemsService.create(createItemDto, jwtPayload.id);
   }
 
-  //replaced that ; made create and update returns signature
-  // @Get('signature/:id')
-  // @UseGuards(JwtAuthGuard)
-  // getSignature(
-  //   @Param('id', ParseIntPipe) id: number,
-  //   @User() jwtPayload: JwtPayloadType,
-  // ) {
-  //   return this.itemsService.getSignature(id, jwtPayload.id);
-  // }
+  // =========================================================================
+
+  /**
+   * [PATCH] /api/items/images/:id
+   * Access: verified Users (Owner Only)
+   * Description: Attach uploaded Cloudinary image IDs to a specific item
+   */
 
   @ApiOperation({
     summary: 'Attach uploaded images to an item',
     description: `
-    Send Cloudinary image IDs here after uploading. Use "changeDraftToActive: true" to flip status from "DRAFT" to "ACTIVE".
-**🚀 How to Upload Images to Cloudinary (Frontend Guide):**
+                Send Cloudinary image IDs here after uploading. Use "changeDraftToActive: true" to flip status from "DRAFT" to "ACTIVE".
+                **🚀 How to Upload Images to Cloudinary (Frontend Guide):**
 
-Before calling this endpoint, you must upload the image directly to Cloudinary.
+                Before calling this endpoint, you must upload the image directly to Cloudinary.
 
-**Make a POST request to:**
-\`https://api.cloudinary.com/v1_1/dmudqzggn/image/upload\`
+                **Make a POST request to:**
+                \`https://api.cloudinary.com/v1_1/dmudqzggn/image/upload\`
 
-**Body (multipart/form-data):**
-- \`file\`: (The actual image file - Binary)
-- \`timestamp\`: (The timestamp returned with the signature)
-- \`signature\`: (The generated signature from the backend)
-- \`folder\`: (Target folder path returned with the signature)
-- \`api_key\`: (Cloudinary API Key returned with the signature)
-- \`upload_preset\`: (The specific upload preset returned with the signature)
+                **Body (multipart/form-data):**
+                - \`file\`: (The actual image file - Binary)
+                - \`timestamp\`: (The timestamp returned with the signature)
+                - \`signature\`: (The generated signature from the backend)
+                - \`folder\`: (Target folder path returned with the signature)
+                - \`api_key\`: (Cloudinary API Key returned with the signature)
+                - \`upload_preset\`: (The specific upload preset returned with the signature)
 
-After a successful upload, Cloudinary will return the image IDs. Send those IDs in THIS request body. 
-*Note: Use \`changeDraftToActive: true\` to automatically flip the item status from DRAFT to ACTIVE.* `,
+                After a successful upload, Cloudinary will return the image IDs. Send those IDs in THIS request body. 
+                *Note: Use \`changeDraftToActive: true\` to automatically flip the item status from DRAFT to ACTIVE.* `,
   })
   @Patch('images/:id')
   @UseGuards(JwtAuthGuard)
@@ -95,6 +100,13 @@ After a successful upload, Cloudinary will return the image IDs. Send those IDs 
     );
   }
 
+  // =========================================================================
+
+  /**
+   * [GET] /api/items
+   * Access: Public
+   * Description: Get all ACTIVE/SOLD items with multiple filters
+   */
   @Get()
   @ApiOperation({
     summary: 'Get all items with optional filters',
@@ -105,6 +117,13 @@ After a successful upload, Cloudinary will return the image IDs. Send those IDs 
     return this.itemsService.findAll(findItemsDto);
   }
 
+  // =========================================================================
+
+  /**
+   * [GET] /api/items/admin
+   * Access: Admins Only
+   * Description: GET all system items ignoring the status restrictions
+   */
   @Get('admin')
   @Roles([UserType.ADMIN])
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -114,15 +133,13 @@ After a successful upload, Cloudinary will return the image IDs. Send those IDs 
     return this.itemsService.findAllForAdmins(findItemsDto);
   }
 
-  //<deprecated> use find all with user query
-  // @Get('user/:userId')
-  // findItemsByUser(
-  //   @Param('userId', ParseIntPipe) userId: number,
-  //   @Query('page', new ParseIntPipe({ optional: true })) page: number,
-  // ) {
-  //   return this.itemsService.findItemsByUser(userId, page);
-  // }
+  // =========================================================================
 
+  /**
+   * [GET] /api/items/locations
+   * Access: Public
+   * Description: GET the entire database layout tree (Country > Region > City)
+   */
   @Get('locations')
   @ApiOperation({
     summary: 'Get ALL geographical locations:country,region,city',
@@ -131,12 +148,26 @@ After a successful upload, Cloudinary will return the image IDs. Send those IDs 
     return this.itemsService.getAllLocations();
   }
 
+  // =========================================================================
+
+  /**
+   * [GET] /api/items/:id
+   * Access: Public
+   * Description: GET detailed data about a specific item
+   */
   @Get(':id')
   @ApiOperation({ summary: 'Get a specific item by ID' })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.itemsService.findOne(id);
   }
 
+  // =========================================================================
+
+  /**
+   * [PUT] /api/items/:id
+   * Access: verified Users (Owner or Admin)
+   * Description: Update core details of an item or remove specific images
+   */
   @Put(':id')
   @ApiBearerAuth()
   @ApiOperation({
@@ -153,6 +184,13 @@ After a successful upload, Cloudinary will return the image IDs. Send those IDs 
     return this.itemsService.update(id, updateItemDto, jwtPayload);
   }
 
+  // =========================================================================
+
+  /**
+   * [DELETE] /api/items/:id
+   * Access: verified Users (Owner or Admin)
+   * Description: Delete an item completely and dispatch Cloudinary cleanup queue
+   */
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -168,3 +206,22 @@ After a successful upload, Cloudinary will return the image IDs. Send those IDs 
     return this.itemsService.remove(+id, jwtPayload);
   }
 }
+
+//replaced that ; made create and update returns signature
+// @Get('signature/:id')
+// @UseGuards(JwtAuthGuard)
+// getSignature(
+//   @Param('id', ParseIntPipe) id: number,
+//   @User() jwtPayload: JwtPayloadType,
+// ) {
+//   return this.itemsService.getSignature(id, jwtPayload.id);
+// }
+
+//<deprecated> use find all with user query
+// @Get('user/:userId')
+// findItemsByUser(
+//   @Param('userId', ParseIntPipe) userId: number,
+//   @Query('page', new ParseIntPipe({ optional: true })) page: number,
+// ) {
+//   return this.itemsService.findItemsByUser(userId, page);
+// }

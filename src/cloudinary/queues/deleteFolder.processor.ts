@@ -5,6 +5,11 @@ import { BaseWorker } from '../../utils/base.worker';
 
 @Processor('deleteFolder-queue')
 export class deleteFolderProcessor extends BaseWorker {
+  /**
+   * Processes the background job to completely delete a folder from Cloudinary.
+   * @param job -folder path
+   * @returns A promise that resolves when the folder deletion lifecycle completes
+   */
   async process(job: Job<{ folderPath: string }, any, string>): Promise<any> {
     const { folderPath } = job.data;
     this.logger.log(`started deleting folder of  path ${folderPath}`);
@@ -28,7 +33,6 @@ export class deleteFolderProcessor extends BaseWorker {
         `Cannot find that folder to delete of error : ${error.error.message}`,
       );
     } else {
-      console.error(`Job ${job?.id} failed with error:`, err);
       this.logger.error(`Job ${job?.id} failed with error: ${err}`);
     }
   }

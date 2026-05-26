@@ -13,8 +13,16 @@ export class CloudinaryService {
     @InjectQueue('deleteFolder-queue')
     private deleteFolderQueue: Queue,
   ) {}
-
   private readonly logger = new Logger('CloudinaryService');
+
+  // =========================================================================
+
+  /**
+   * Generates a secure, time-limited signature required for client-side Cloudinary uploads.
+   * @param itemId - Target item id
+   * @param userId - Requesting user id
+   * @returns signature and payload metadata
+   */
   generateSignature(itemId: number, userId: number) {
     //made its Lifespan 10 minutes
     const desiredLifespan = 60 * 10;
@@ -40,6 +48,12 @@ export class CloudinaryService {
     };
   }
 
+  // =========================================================================
+
+  /**
+   * delete an image by assigning it to processing background queue.
+   * @param PublicID - The unique Cloudinary asset public id
+   */
   async deleteImage(PublicID: string) {
     // await cloudinary.uploader.destroy(PublicID);
     await this.deleteImageQueue.add('delete-image', {
@@ -47,6 +61,13 @@ export class CloudinaryService {
     });
   }
 
+  // =========================================================================
+
+  /**
+   * delete a folder by assigning it to processing background queue.
+   * @param folderPath - The remote directory string path
+   * @returns a message of 'deleted successfully'
+   */
   async deleteFolder(folderPath: string) {
     await this.deleteFolderQueue.add('delete-folder', {
       folderPath: folderPath,
@@ -54,6 +75,13 @@ export class CloudinaryService {
     return 'deleted successfully';
   }
 
+  // =========================================================================
+
+  /**
+   * Verifies whether an asset exists inside the remote Cloudinary storage server.
+   * @param PublicID - The unique Cloudinary asset public id
+   * @returns Boolean
+   */
   async imageExists(PublicID: string) {
     try {
       await cloudinary.api.resource(PublicID);
@@ -73,6 +101,12 @@ export class CloudinaryService {
     return true;
   }
 
+  // =========================================================================
+
+  /**
+   * Scans and aggregates remote image urls within last 3 days
+   * @returns An array containing target public URL addresses
+   */
   async getAllImagesOfThreeDays() {
     const allRemotePublicIds: string[] = [];
     let nextCursor = null;
@@ -103,7 +137,15 @@ export class CloudinaryService {
     return allRemotePublicIds;
   }
 
+  // =========================================================================
+
+  /**
+   * delete multiple Cloudinary asset targets by Public Ids
+   * @param PublicIds - array containing Public Ids targets
+   * @returns void
+   */
   async deleteArrayOfPublicIds(PublicIds: string[]) {
-    return (await cloudinary.api.delete_resources(PublicIds)) as unknown;
+    await cloudinary.api.delete_resources(PublicIds);
+    return;
   }
 }

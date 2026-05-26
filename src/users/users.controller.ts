@@ -22,6 +22,7 @@ import { RegisterDto } from './dtos/register.dto';
 import { LocalAuthGuard } from './auth/guards/local-auth.guard';
 import type {
   RequestWithCookies,
+  RequestWithUserAndTokens,
   RequestWithWholeUser,
 } from '../utils/interfaces';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
@@ -31,8 +32,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
 import { User } from './auth/decorators/user.decorator';
 import type { JwtPayloadType } from '../utils/types';
 import { GoogleAuthGuard } from './auth/guards/oAuth.guard';
-import { type Request, type Response } from 'express';
-
+import { type Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { ForgotPasswordDto } from './dtos/forgot-password.dto';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
@@ -48,25 +48,34 @@ export class UsersController {
     private configService: ConfigService,
   ) {}
 
-  /////////////////////////////////////
-  // auth controllers
-  /////////////////////////////////////
+  // =========================================================================
+  // AUTHENTICATION ENDPOINTS
+  // =========================================================================
 
-  //post :~/api/users/auth/register
+  /**
+   * [POST] /api/users/auth/register
+   * Access: Public
+   * Description: Register user, generate tokens
+   */
   @ApiOperation({
-    summary: 'register user, generate tokens and send verification email',
+    summary: 'register new user',
   })
   @Post('auth/register')
   public async register(
     @Body() registerDto: RegisterDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const user = await this.usersService.register(registerDto);
-    this.addRefreshTokenToCookie(res, user['refreshToken']);
-    return user;
+    const result = await this.usersService.register(registerDto);
+    this.addRefreshTokenToCookie(res, result.refreshToken);
+    return { user: result.user, accessToken: result.accessToken };
   }
+  // =========================================================================
 
-  //post :~/api/users/auth/login
+  /**
+   * [POST] /api/users/auth/login
+   * Access: Public
+   * Description: Authenticate user via local strategy and generate tokens
+   */
   @ApiOperation({ summary: 'Authenticate user and generate tokens' })
   @ApiBody({ type: LoginDto })
   @HttpCode(HttpStatus.OK)
@@ -76,13 +85,18 @@ export class UsersController {
     @Req() req: RequestWithWholeUser,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const user = await this.usersService.login(req.user);
-    this.addRefreshTokenToCookie(res, user['refreshToken']);
-    return user;
+    const result = await this.usersService.login(req.user);
+    this.addRefreshTokenToCookie(res, result.refreshToken);
+    return { user: result.user, accessToken: result.accessToken };
   }
 
-  //Get :~/api/users/auth/google/login
+  // =========================================================================
 
+  /**
+   * [GET] /api/users/auth/google/login
+   * Access: Public
+   * Description: Initiate Google OAuth2 login flow
+   */
   @ApiOperation({
     summary: 'Initiate Google OAuth2 login flow',
     description:
@@ -93,20 +107,31 @@ export class UsersController {
   public googleLogin() {
     return 'done google/login';
   }
+  // =========================================================================
 
-  //Get :~/api/users/auth/google/callback
+  /**
+   * [GET] /api/users/auth/google/callback
+   * Access: Public
+   * Description: Google OAuth2 callback landing endpoint
+   */
   @ApiOperation({ summary: 'Google OAuth2 callback landing endpoint' })
   @UseGuards(GoogleAuthGuard)
   @Get('auth/google/callback')
   public googleLoginCallback(
-    @Req() req: RequestWithWholeUser,
+    @Req() req: RequestWithUserAndTokens,
     @Res({ passthrough: true }) res: Response,
   ) {
-    this.addRefreshTokenToCookie(res, req.user['refreshToken']);
-    return req.user;
+    this.addRefreshTokenToCookie(res, req.user.refreshToken);
+    return { user: req.user.user, accessToken: req.user.accessToken };
   }
 
-  //Get :~/api/users/auth/refresh
+  // =========================================================================
+
+  /**
+   * [GET] /api/users/auth/refresh
+   * Access: Public (Requires Refresh Token Cookie)
+   * Description: get a new access token using a valid HTTP-only refresh token cookie
+   */
   @ApiOperation({
     summary: 'Refresh access token',
     description:
@@ -117,7 +142,13 @@ export class UsersController {
     return this.usersService.refreshAccessToken(req.cookies['refresh_token']);
   }
 
-  //post :~/api/users/auth/logout
+  // =========================================================================
+
+  /**
+   * [POST] /api/users/auth/logout
+   * Access: Users
+   * Description: Invalidate current refresh token and clear the auth cookie
+   */
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Logout current session',
@@ -139,7 +170,13 @@ export class UsersController {
     return 'logged out successfully';
   }
 
-  //post :~/api/users/auth/logout-all
+  // =========================================================================
+
+  /**
+   * [POST] /api/users/auth/logout-all
+   * Access: Users
+   * Description: Invalidate all active refresh tokens for the user and clear the cookie
+   */
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Logout from all devices',
@@ -159,10 +196,16 @@ export class UsersController {
 
     return 'logged out From all Devices successfully';
   }
-  /////////////////////////////////////
-  // verify email controllers
-  /////////////////////////////////////
-  //Get :~/api/users/send-email-verification
+
+  // =========================================================================
+  // EMAIL VERIFICATION ENDPOINTS
+  // =========================================================================
+
+  /**
+   * [GET] /api/users/send-email-verification
+   * Access: Users
+   * Description: Dispatch an email containing the verification token link
+   */
   @Throttle({ short: { limit: 1, ttl: 60000 } })
   @Get('send-email-verification')
   @UseGuards(JwtAuthGuard)
@@ -174,8 +217,13 @@ export class UsersController {
   public getVerificationToken(@User() jwtPayload: JwtPayloadType) {
     return this.usersService.getVerificationToken(jwtPayload.id);
   }
+  // =========================================================================
 
-  //Get :~/api/users/verify-email
+  /**
+   * [GET] /api/users/verify-email
+   * Access: Public
+   * Description: Verify user email using the provided query token
+   */
   @Get('verify-email')
   @ApiOperation({
     summary: 'Verify user email using the token provided via query link',
@@ -184,10 +232,15 @@ export class UsersController {
     return this.usersService.verifyEmail(token);
   }
 
-  /////////////////////////////////////
-  // forgot password controllers
-  /////////////////////////////////////
-  //Post :~/api/users/forgot-password
+  // =========================================================================
+  // PASSWORD RECOVERY ENDPOINTS
+  // =========================================================================
+
+  /**
+   * [POST] /api/users/forgot-password
+   * Access: Public
+   * Description: Request a password reset link to be sent via email
+   */
   @Throttle({ short: { limit: 1, ttl: 60000 } })
   @Post('forgot-password')
   @ApiOperation({ summary: 'Request password reset email link' })
@@ -195,7 +248,13 @@ export class UsersController {
     return this.usersService.forgotPassword(forgotPasswordDto.email);
   }
 
-  //Post :~/api/users/reset-password
+  // =========================================================================
+
+  /**
+   * [POST] /api/users/reset-password
+   * Access: Public
+   * Description: Reset the user password utilizing the token sent via email
+   */
   @Post('reset-password')
   @ApiOperation({
     summary: 'Reset user password using the token sent to the email',
@@ -206,10 +265,15 @@ export class UsersController {
       resetPasswordDto.password,
     );
   }
-  /////////////////////////////////////
-  // users controllers
-  /////////////////////////////////////
-  //Get :~/api/users
+  // =========================================================================
+  // USER MANAGEMENT ENDPOINTS
+  // =========================================================================
+
+  /**
+   * [GET] /api/users
+   * Access: Admins Only
+   * Description: Retrieve a list of all registered users
+   */
   @Get()
   @ApiBearerAuth()
   @ApiOperation({ summary: '(Admin only) Get All users' })
@@ -219,7 +283,13 @@ export class UsersController {
     return this.usersService.getAllUsers();
   }
 
-  //Get :~/api/users/me
+  // =========================================================================
+
+  /**
+   * [GET] /api/users/me
+   * Access: Users
+   * Description: Get the profile data of the currently logged-in user
+   */
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current logged-in user profile' })
   @Get('me')
@@ -228,14 +298,26 @@ export class UsersController {
     return this.usersService.getUserBy(jwtPayload.id);
   }
 
-  //Get :~/api/users/:id
+  // =========================================================================
+
+  /**
+   * [GET] /api/users/:id
+   * Access: Public
+   * Description: Get the public profile data of any specific user by ID
+   */
   @Get(':id')
   @ApiOperation({ summary: 'Get any user profile by ID (Public)' })
   public getUser(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.getUserBy(id);
   }
 
-  //Put :~/api/users/me
+  // =========================================================================
+
+  /**
+   * [PUT] /api/users/me
+   * Access: Users
+   * Description: Update the profile details of the currently logged-in user
+   */
   @ApiBearerAuth()
   @Put('me')
   @UseGuards(JwtAuthGuard)
@@ -247,7 +329,13 @@ export class UsersController {
     return this.usersService.editUser(jwtPayload.id, updateUserDto);
   }
 
-  //Put :~/api/users/:id
+  // =========================================================================
+
+  /**
+   * [PUT] /api/users/:id
+   * Access: Admins Only
+   * Description: Modify the profile data of any user by ID
+   */
   @ApiBearerAuth()
   @Put(':id')
   @Roles([UserType.ADMIN])
@@ -260,7 +348,13 @@ export class UsersController {
     return this.usersService.editUser(id, updateUserDto);
   }
 
-  //Delete :~/api/users/me
+  // =========================================================================
+
+  /**
+   * [DELETE] /api/users/me
+   * Access: Users
+   * Description: Delete the current user's account and associated data
+   */
   @ApiBearerAuth()
   @Delete('me')
   @UseGuards(JwtAuthGuard)
@@ -269,7 +363,13 @@ export class UsersController {
     return this.usersService.deleteUser(jwtPayload.id);
   }
 
-  //Delete :~/api/users/:id
+  // =========================================================================
+
+  /**
+   * [DELETE] /api/users/:id
+   * Access: Admins Only
+   * Description: delete any user account and associated data by ID
+   */
   @ApiBearerAuth()
   @Delete(':id')
   @Roles([UserType.ADMIN])
@@ -279,6 +379,13 @@ export class UsersController {
     return this.usersService.deleteUser(id);
   }
 
+  // =========================================================================
+
+  /**
+   * Helper utility to securely append the refresh token HTTP-only cookie to the response object.
+   * @param res - Express response object reference
+   * @param refreshToken - The newly issued refresh token
+   */
   private addRefreshTokenToCookie(res: Response, refreshToken: any) {
     const isProduction = this.configService.get('NODE_ENV') === 'production';
     res.cookie('refresh_token', refreshToken, {

@@ -6,9 +6,12 @@ export interface RequestWithUserPayload extends Request {
   user: JwtPayloadType;
 }
 
+export interface RequestWithUserAndTokens extends Request {
+  user: { user: User; accessToken: string; refreshToken: string };
+}
+
 export interface RequestWithWholeUser extends Request {
   user: User;
-  cookies: { refresh_token: string };
 }
 
 export interface RequestWithCookies extends Request {

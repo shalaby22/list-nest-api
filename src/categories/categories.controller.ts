@@ -24,6 +24,13 @@ import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
+  // =========================================================================
+
+  /**
+   * [POST] /api/categories
+   * Access: Admin Only
+   * Description: Create a new category
+   */
   @Post()
   @Roles([UserType.ADMIN])
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -35,18 +42,39 @@ export class CategoriesController {
     return this.categoriesService.create(createCategoryDto);
   }
 
+  // =========================================================================
+
+  /**
+   * [GET] /api/categories
+   * Access: Public
+   * Description: Get the entire categories tree
+   */
   @Get()
   @ApiOperation({ summary: 'Get all categories tree' })
   findAll() {
     return this.categoriesService.findAll();
   }
 
+  // =========================================================================
+
+  /**
+   * [GET] /api/categories/:id
+   * Access: Public
+   * Description: Get a specific category by its ID
+   */
   @Get(':id')
   @ApiOperation({ summary: 'Get a specific category by ID' })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.categoriesService.findOne(+id);
   }
 
+  // =========================================================================
+
+  /**
+   * [GET] /api/categories/:id/items
+   * Access: Public
+   * Description: Get all items for a category with pagination & filters
+   */
   @Get(':id/items')
   @ApiOperation({
     summary:
@@ -58,6 +86,13 @@ export class CategoriesController {
   ) {
     return this.categoriesService.findOneWithItems(id, findCategoryItemsDto);
   }
+
+  // =========================================================================
+  /**
+   * [PUT] /api/categories/:id
+   * Access: Admin Only
+   * Description: Update an existing category by ID
+   */
 
   @Put(':id')
   @ApiBearerAuth()
@@ -73,6 +108,13 @@ export class CategoriesController {
     return this.categoriesService.update(+id, updateCategoryDto);
   }
 
+  // =========================================================================
+
+  /**
+   * [DELETE] /api/categories/:id
+   * Access: Admin Only
+   * Description: Remove a category by ID (Fails if category has items)
+   */
   @Delete(':id')
   @ApiBearerAuth()
   @ApiOperation({

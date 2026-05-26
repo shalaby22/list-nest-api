@@ -15,6 +15,7 @@ import { Message } from '../chats/entities/message.entity';
 
 @Entity()
 export class User {
+  [x: string]: any;
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -67,8 +68,4 @@ export class User {
 
   @OneToMany(() => Message, (message) => message.receiver)
   receivedMessages: Message[];
-
-  //not column
-  @Exclude()
-  refreshToken?: string;
 }

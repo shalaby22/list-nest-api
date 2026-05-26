@@ -21,7 +21,14 @@ async function bootstrap() {
     .setTitle('ListNest API')
     .setDescription('Documentation for ListNest endpoints')
     .setVersion('1.0')
-    .addBearerAuth()
+    .addBearerAuth({
+      type: 'http',
+      scheme: 'Bearer',
+      bearerFormat: 'JWT',
+      name: 'JWT',
+      description: 'Enter JWT token directly without bearer',
+      in: 'header',
+    })
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

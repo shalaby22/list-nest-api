@@ -42,6 +42,7 @@
 
 - **Hierarchical Management:** Engineered a structured category system supporting Parent and Subcategory relationships, secured with Admin-only access.
 - **Optimized Client Filtering:** Linked items to specific categories to enable highly optimized and rapid querying on the client side.
+- **High-Performance Caching:** Integrated **Redis** to cache the hierarchical category tree. This architectural enhancement bypasses repetitive database reads.
 
 ### ❤️ Wishlist Functionality
 
@@ -51,13 +52,14 @@
 ### 💬 Real-Time Chat & Messaging System
 
 - **WebSockets (`Socket.io`):** Engineered a real-time messaging system enabling seamless communication between buyers and sellers.
-- **Secured Connections:** Protected WebSocket connections using custom JWT Authentication Guards and Rate Limiting to prevent unauthorized access and message spamming.
-- **Strict Room Authorization:** Enforced domain-level authorization for private chat rooms, ensuring only the specific item's seller and the initiating buyer can join or read the conversation.
 - **Hybrid Architecture:** Combined HTTP REST APIs for a paginated Inbox and "mark as read" functionality with WebSockets for instant message delivery.
+- **Strict Room Authorization:** Enforced domain-level authorization for private chat rooms, ensuring only the specific item's seller and the initiating buyer can join or read the conversation.
+- **Secured Connections:** Protected WebSocket connections using custom JWT Authentication Guards and Rate Limiting to prevent unauthorized access and message spamming.
+- **Real-Time Notifications:** Implemented an instant notification system integrated with WebSockets, instantly alerting idle users of new messages to enhance engagement and response rates.
 
 ---
 
-## 🗄️ Database Schema (ERD)
+### 🗄️ Database Schema (ERD)
 
 The database is carefully designed to support complex relationships, hierarchical data, and geospatial queries. Below is the Entity-Relationship Diagram representing the core architecture, including the hierarchical location system, self-referencing categories, and the real-time chat structure.
 
@@ -65,11 +67,16 @@ The database is carefully designed to support complex relationships, hierarchica
 
 ---
 
-## 🏗️ Architecture & Code Quality
+### 🏗️ Architecture & Code Quality
 
 - **OOP & Dependency Injection:** Strictly adhered to Object-Oriented Programming and DI principles using **NestJS**.
 - **Payload Validation:** Utilized Data Transfer Objects (DTOs) and `class-validator` for rigorous data validation.
 - **Interactive Documentation:** Auto-generated complete, interactive API documentation using **Swagger UI**.
+- **Global Error Handling & Logging:** Implemented comprehensive global exception filters to catch and format errors seamlessly, paired with targeted logging for tracking Internal Server Errors (500) and Rate Limit breaches.
+
+### 📐 API Standardization & Reliability
+
+- **Consistent Response Format (JSend):** Engineered a robust Global Interceptor and Exception Filter to standardize all API responses strictly adhering to the **JSend** specification (`success`, `fail`, `error`). This guarantees highly predictable API contracts, significantly streamlining frontend integration and error handling.
 
 ---
 

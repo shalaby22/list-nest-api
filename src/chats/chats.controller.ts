@@ -24,31 +24,51 @@ import { ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 export class ChatsController {
   constructor(private chatsService: ChatsService) {}
 
+  // =========================================================================
+
+  /**
+   * [POST] /api/chats/start/:itemId
+   * Access: verified Users
+   * Description: Start a new conversation regarding a specific item
+   */
   @Post('start/:itemId')
   @ApiOperation({
     summary: 'Start a new conversation regarding a specific item',
     description: `
 ### 🔌 **WebSockets (Socket.io) Integration Guide**
 
-After calling this HTTP endpoint to initialize or get the chat session, you must switch to WebSockets for real-time communication.
+After calling this HTTP endpoint to initialize or retrieve a chat session, you must establish a WebSocket connection for real-time messaging and notifications.
 
 #### **1. Connection Details**
-- **Gateway Namespace URL:** \`ws://https://list-nest-api-production.up.railway.app/api/socket/chats\`
-- **Authentication:** You must pass the JWT Access Token in the handshake headers or auth object:
+- **Endpoint:** \`/api/socket/chats\`
+- **Authentication:** You MUST pass the JWT Access Token in the connection headers. 
+*(If using Postman Socket.io, add it in the "Headers" tab as shown below)*:
+  \`\`\`json
+  { "Authorization": "Bearer YOUR_ACCESS_TOKEN" }
+  \`\`\`
+*(For client libraries like socket.io-client)*:
   \`\`\`javascript
-  const socket = io("ws://https://list-nest-api-production.up.railway.app/api/socket/chats", {
-    auth: { token: "Bearer YOUR_ACCESS_TOKEN" }
+  const socket = io("wss://list-nest-api-production.up.railway.app/api/socket/chats", {
+    extraHeaders: {
+      Authorization: "Bearer YOUR_ACCESS_TOKEN"
+    }
   });
   \`\`\`
 
-#### **2. Joining a Chat Room**
-When the user opens a specific chat screen, they must join the room to start exchanging messages:
+#### **2. Joining a Chat Room (Active Chat)**
+When a user explicitly opens a chat screen, they must join that specific room to send/receive direct messages.
 - **Emit Event:** \`join_conversation\`
-- **Payload:** \`{ chatId: number }\`
+- **Payload:** \`{ "chatId": number }\`
 
-#### **3. Real-Time Messaging**
-- **To Send a Message:** Emit \`send_message\` with payload: \`{ chatId: number, content: string }\`
-- **To Receive Messages:** Listen to the event \`receive_message\` inside the room. It returns the complete saved message object in real-time.
+#### **3. Emitting & Listening to Events**
+Once connected, the client should listen for and emit the following events:
+
+| Event Name | Type | Description | Payload Structure |
+| :--- | :--- | :--- | :--- |
+| **\`send_message\`** | **Emit** | Send a new message to the active chat room. | \`{ "chatId": number, "content": "string" }\` |
+| **\`receive_message\`** | **Listen** | Triggered when a new message is sent in the currently active chat room. | Returns the complete \`Message\` object. |
+| **\`new_message_notification\`** | **Listen** | Triggered globally when the user receives a message in ANY chat (useful for idle/offline UI updates or badges). | Returns partial info (e.g., \`chatId\`, \`senderName\`). |
+| **\`exception\`** | **Listen** | Catches WebSocket errors (e.g., Unauthorized, Room access denied, Validation errors). | \`{ "status": "error", "message": "string" }\` |
     `,
   })
   startConversation(
@@ -58,6 +78,13 @@ When the user opens a specific chat screen, they must join the room to start exc
     return this.chatsService.startConversation(jwtPayload.id, itemId);
   }
 
+  // =========================================================================
+
+  /**
+   * [GET] /api/chats/inbox
+   * Access: verified Users
+   * Description: Get current user inbox (list of chats) with pagination
+   */
   @Get('inbox')
   @ApiOperation({ summary: 'Get current user inbox (list of chats)' })
   @ApiQuery({
@@ -73,6 +100,13 @@ When the user opens a specific chat screen, they must join the room to start exc
     return this.chatsService.getUserInbox(jwtPayload.id, page);
   }
 
+  // =========================================================================
+
+  /**
+   * [GET] /api/chats/inbox/:itemId
+   * Access: verified Users
+   * Description: Get current user chats associated with a specific item
+   */
   @Get('inbox/:itemId')
   @ApiOperation({ summary: 'Get current user chats of a specific item' })
   @ApiQuery({
@@ -89,6 +123,13 @@ When the user opens a specific chat screen, they must join the room to start exc
     return this.chatsService.getUserInbox(jwtPayload.id, page, itemId);
   }
 
+  // =========================================================================
+
+  /**
+   * [GET] /api/chats/:chatId
+   * Access: verified Users
+   * Description: Get paginated messages of a specific chat
+   */
   @Get(':chatId')
   @ApiOperation({ summary: 'Get paginated messages of a specific chat' })
   @ApiQuery({
@@ -105,6 +146,13 @@ When the user opens a specific chat screen, they must join the room to start exc
     return this.chatsService.getChatMessages(chatId, jwtPayload.id, page);
   }
 
+  // =========================================================================
+
+  /**
+   * [PATCH] /api/chats/:chatId
+   * Access: verified Users
+   * Description: Mark all unread messages in a specific chat as read
+   */
   @Patch(':chatId')
   @ApiOperation({ summary: 'Mark all messages in a specific chat as read' })
   markMessagesAsRead(

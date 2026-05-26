@@ -20,38 +20,39 @@ export class UsersProvider {
 
   /**
    * Get all users
-   * @permission Admins only
-   * @returns all users
+   * @returns An array containing all user entities
    */
   public getAllUsers() {
     return this.usersRepository.find({});
   }
 
+  // =========================================================================
+
   /**
-   * get User By id
-   * @param id
-   * @permission any one
-   * @returns user
+   * Fetches a specific user entity by their unique ID identifier.
+   * @param id - The target user ID
+   * @returns The requested user
    */
   public async getUserBy(id: number) {
     const user = await this.usersRepository.findOneBy({ id });
     if (!user) {
       throw new NotFoundException();
     }
-    return user;
+    return { user };
   }
+
+  // =========================================================================
 
   /**
    * edit User By id
-   * @param id of my user or any user if admin
-   * @param updateUserDto data to edit
-   * @permission Admins only or edit own user
-   * @returns user edited
+   * @param id - The ID of the target user to edit
+   * @param updateUserDto - The payload mapping fields intended for modification
+   * @returns The updated and saved user entity
    */
   public async editUserBy(id: number, updateUserDto: UpdateUserDto) {
     if (!updateUserDto) throw new BadRequestException('the body is empty');
 
-    const user = await this.getUserBy(id);
+    const { user } = await this.getUserBy(id);
     user.firstName = updateUserDto.firstName ?? user.firstName;
     user.lastName = updateUserDto.lastName ?? user.lastName;
     user.phone = updateUserDto.phone ?? user.phone;
@@ -61,19 +62,20 @@ export class UsersProvider {
       user.password = hash;
     }
     const editedUser = await this.usersRepository.save(user);
-    return editedUser;
+    return { user: editedUser };
   }
 
+  // =========================================================================
+
   /**
-   * delete User By id
-   * @param id of my user or any user if admin
-   * @permission Admins only or edit own user
-   * @returns user deleted
+   * deletes a user record and delegates the removal of their remote Cloudinary directory.
+   * @param id - The ID of the target user to delete
+   * @returns An object containing the ID of the deleted user for frontend state tracking
    */
   public async deleteUserBy(id: number) {
-    const user = await this.getUserBy(id);
+    const { user } = await this.getUserBy(id);
     const _deleted = this.cloudinaryService.deleteFolder(`items/user_${id}`);
     await this.usersRepository.remove(user);
-    return 'deleted successfully';
+    return { message: 'user deleted successfully' };
   }
 }

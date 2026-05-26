@@ -23,6 +23,14 @@ export class ChatsService {
     private usersService: UsersService,
   ) {}
 
+  // =========================================================================
+
+  /**
+   * Initializes or returns an existing chat room for an item between a buyer and a seller.
+   * @param userId - The ID of the authenticated buyer
+   * @param itemId - The ID of the item being discussed
+   * @returns The chat
+   */
   async startConversation(userId: number, itemId: number) {
     const item = await this.itemsService.findOne(itemId);
     if (userId === item.user.id) {
@@ -33,7 +41,7 @@ export class ChatsService {
     });
     if (!chat) {
       //check if verified user
-      const buyerUser = await this.usersService.getUserBy(userId);
+      const { user: buyerUser } = await this.usersService.getUserBy(userId);
       if (!buyerUser.isVerified)
         throw new BadRequestException('your user is not verified yet');
 
@@ -44,9 +52,18 @@ export class ChatsService {
       });
       await this.chatRepository.save(chat);
     }
-    return chat;
+    return { chat };
   }
 
+  // =========================================================================
+
+  /**
+   * Get paginated messages from a specific conversation.
+   * @param chatId - The target chat session ID
+   * @param userId - The ID of the requesting user
+   * @param page - Optional pagination page number
+   * @returns An object of messages and the total messages count
+   */
   async getChatMessages(chatId: number, userId: number, page?: number) {
     const chat = await this.chatRepository.findOne({
       where: { id: chatId },
@@ -79,6 +96,15 @@ export class ChatsService {
     return { messages, totalMessages };
   }
 
+  // =========================================================================
+
+  /**
+   * GET a paginated list of chats rooms of the user (Inbox).
+   * @param userId - The user ID checking their inbox
+   * @param page - Optional pagination page number
+   * @param itemId - Optional item ID to filter inbox streams
+   * @returns An object of chats with unread count for every chat and the total chats count
+   */
   async getUserInbox(userId: number, page?: number, itemId?: number) {
     const query = this.chatRepository
       .createQueryBuilder('chat')
@@ -125,31 +151,56 @@ export class ChatsService {
 
     return { chats, totalChats };
   }
+  // =========================================================================
 
+  /**
+   * Updates status of unread messages of chat to read.
+   * @param chatId - The target chat ID
+   * @param receiverId - The user acknowledging message delivery
+   * @returns message of read successfully
+   */
   async markMessagesAsRead(chatId: number, receiverId: number) {
     await this.messageRepository.update(
       { chat: { id: chatId }, receiver: { id: receiverId }, isRead: false },
       { isRead: true },
     );
-    return 'messages read successfully';
+    return { message: 'messages read successfully if the inputs are valid' };
   }
 
+  // =========================================================================
+
+  /**
+   * save a new message to dataBase
+   * @param chatId - Target chat
+   * @param senderId - Message author ID
+   * @param receiverId - Target destination client ID
+   * @param content - Text message body content
+   * @returns Saved message
+   */
   async saveMessage(
     chatId: number,
     senderId: number,
     receiverId: number,
     content: string,
   ) {
-    const message = this.messageRepository.create({
+    let message = this.messageRepository.create({
       chat: { id: chatId },
       sender: { id: senderId },
       receiver: { id: receiverId },
       content,
     });
-
-    return await this.messageRepository.save(message);
+    message = await this.messageRepository.save(message);
+    return { message };
   }
 
+  // =========================================================================
+
+  /**
+   * check validating membership rights over a chat.
+   * @param chatId - Target chat id
+   * @param userId - user id
+   * @returns Validated chat
+   */
   async verifyConversationAccess(chatId: number, userId: number) {
     const chat = await this.chatRepository.findOne({
       where: { id: chatId },

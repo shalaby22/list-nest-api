@@ -29,6 +29,11 @@ export class ItemsCronService {
   //   this.logger.log('started cron job EVERY_30_SECONDS');
   // }
 
+  // =========================================================================
+
+  /**
+   * Executes daily at midnight to automatically expire items that have exceeded their allowed active lifespan.
+   */
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async expireOldItems() {
     this.logger.log('started cron job on date items check for expiration');
@@ -54,6 +59,11 @@ export class ItemsCronService {
     }
   }
 
+  // =========================================================================
+
+  /**
+   * Executes daily at 1 AM to clear out draft items that have been abandoned for more than 24 hours.
+   */
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
   async deleteDrafts() {
     this.logger.log('started cron job on to delete draft items');
@@ -80,6 +90,12 @@ export class ItemsCronService {
     this.logger.log(`finished`);
   }
 
+  // =========================================================================
+
+  /**
+   * Executes daily at 2 AM to synchronize local database images with Cloudinary
+   * removing orphan assets from Cloudinary
+   */
   @Cron(CronExpression.EVERY_DAY_AT_2AM)
   async deleteUnusedCloudinaryImages() {
     this.logger.log(

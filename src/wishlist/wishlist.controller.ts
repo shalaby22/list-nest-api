@@ -18,6 +18,13 @@ import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 export class WishlistController {
   constructor(private readonly wishlistService: WishlistService) {}
 
+  // =========================================================================
+
+  /**
+   * [POST] /api/wishlist/:itemId
+   * Access: Users
+   * Description: Add a specific item to the current user's wishlist
+   */
   @Post(':itemId')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -29,6 +36,13 @@ export class WishlistController {
     return this.wishlistService.create(jwtPayload.id, itemId);
   }
 
+  // =========================================================================
+
+  /**
+   * [GET] /api/wishlist
+   * Access Users
+   * Description: GET all wishlist items belonging to the current user
+   */
   @Get()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -37,6 +51,13 @@ export class WishlistController {
     return this.wishlistService.findAllByUser(jwtPayload.id);
   }
 
+  // =========================================================================
+
+  /**
+   * [DELETE] /api/wishlist/:itemId
+   * Access: Users
+   * Description: Remove a specific item from the current user's wishlist
+   */
   @Delete(':itemId')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

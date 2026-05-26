@@ -15,7 +15,7 @@ import { WsThrottlerGuard } from '../users/auth/guards/ws-throttler.guard';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayloadType } from '../utils/types';
-import { extractJwtFromSocket } from '../users/auth/ws-jwt.strategy';
+import { extractJwtFromSocket } from '../users/auth/strategies/ws-jwt.strategy';
 
 @WebSocketGateway({
   namespace: '/api/socket/chats',
@@ -35,6 +35,9 @@ export class ChatsGateway {
     private jwtService: JwtService,
   ) {}
 
+  /**
+   * Hook middleware guard checking handshake query/header tokens on setup initialization.
+   */
   afterInit(server: Server) {
     server.use((client: Socket, next) => {
       try {
@@ -52,21 +55,31 @@ export class ChatsGateway {
         client['user'] = user;
         next();
       } catch (error: any) {
-        console.log(`Connection rejected: ${error}`);
         next(new Error(`Connection rejected: ${error}`));
       }
     });
   }
 
+  // =========================================================================
+
+  /**
+   * automatically allocate user-scoped notification channels.
+   */
   async handleConnection(client: AuthenticatedSocket) {
     await client.join(`user_notify_${client.user.id}`);
-    console.log(`User ${client.user.id} joined notification room`);
+    // console.log(`User ${client.user.id} joined notification room`);
   }
 
   // handleDisconnect(client: Socket) {
   //   // console.log(`Client disconnected: ${client.id}`);
   // }
 
+  // =========================================================================
+
+  /**
+   * WS Event: join_conversation
+   * Description: Registers a client into a room representing a chat.
+   */
   @SubscribeMessage('join_conversation')
   async handleJoinConversation(
     @ConnectedSocket() client: AuthenticatedSocket,
@@ -92,6 +105,12 @@ export class ChatsGateway {
     }
   }
 
+  // =========================================================================
+
+  /**
+   * WS Event: send_message
+   * Description: Commits real-time messages to storage and alerts to room listeners and user notification channels.
+   */
   @SubscribeMessage('send_message')
   async handleSendMessage(
     @ConnectedSocket() client: AuthenticatedSocket,

@@ -50,6 +50,14 @@ export class ItemsService {
     private imageItemRepository: Repository<ImageItem>,
   ) {}
 
+  // =========================================================================
+
+  /**
+   * Creates a new item and optionally prepares a draft signature.
+   * @param createItemDto - Item payload
+   * @param userId - ID of the user
+   * @returns The newly created item, including Cloudinary signature if requested
+   */
   public async create(createItemDto: CreateItemDto, userId: number) {
     let newItem = new Item();
     newItem.title = createItemDto.title;
@@ -57,14 +65,14 @@ export class ItemsService {
     newItem.price = createItemDto.price;
 
     //check if verified user
-    const user = await this.usersService.getUserBy(userId);
+    const { user } = await this.usersService.getUserBy(userId);
     if (!user.isVerified)
       throw new BadRequestException('your user is not verified yet');
 
     newItem.user = user;
 
     //check if category is a child category
-    const category = await this.categoriesService.findOne(
+    const { category } = await this.categoriesService.findOne(
       createItemDto.categoryId,
     );
     if (!category.parentCategory)
@@ -91,21 +99,24 @@ export class ItemsService {
     }
     newItem = await this.itemsRepository.save(newItem);
 
+    const result = { item: newItem };
     if (createItemDto.wantSignature) {
       //save as a draft (default)
       const signature = this.getSignature(newItem.id, userId);
-      newItem['signature'] = signature;
+      result['signature'] = signature;
     }
-    return newItem;
+    return result;
   }
 
-  async findAll(findItemsDto: FindItemsDto) {
-    return this.findItems(findItemsDto, true);
-  }
-  async findAllForAdmins(findItemsDto: FindItemsDto) {
-    return this.findItems(findItemsDto, false);
-  }
+  // =========================================================================
 
+  /**
+   * Core execution query builder for fetching complex item structures based on dynamic clauses.
+   * Applies full-text search rankings (PostGIS/TSQuery), geographic radius filtering.
+   * @param findItemsDto - Query parameters mapping to search, location, and filters
+   * @param isActiveOnly - Boolean flag toggling visibility status limits
+   * @returns items with total count
+   */
   private async findItems(findItemsDto: FindItemsDto, isActiveOnly: boolean) {
     const sqlLine = this.itemsRepository
       .createQueryBuilder('item')
@@ -191,7 +202,7 @@ export class ItemsService {
 
     //for categories
     if (findItemsDto.category) {
-      const category = await this.categoriesService.findOne(
+      const { category } = await this.categoriesService.findOne(
         findItemsDto.category,
       );
       if (category.parentCategory) {
@@ -270,39 +281,37 @@ export class ItemsService {
       items = await sqlLine.getMany();
     }
     return { items, totalItems };
-    //  //execute query
-    //     let items = {};
-    //     if (findItemsDto.lat && findItemsDto.lng) {
-    //       const { entities, raw } = await sqlLine.getRawAndEntities();
-    //       items = entities.map((item) => {
-    //         const rawData = raw.find((r) => r.item_id === item.id);
-    //         return {
-    //           ...item,
-    //           distance: Math.round(rawData.distance) / 1000,
-    //         };
-    //       });
-    //     } else {
-    //       items = await sqlLine.getMany();
-    //     }
-    //         return { items, totalItems };
   }
 
-  //<deprecated> use find all with user query
-  // async findItemsByUser(userId: number, page: number) {
-  //   const user = await this.usersService.getUserBy(userId);
+  // =========================================================================
 
-  //   const limit = ITEMS_PER_PAGE;
-  //   const skip = limit * ((page ?? 1) - 1);
+  /**
+   * Retrieves a paginated list of strictly public (Active/Sold) items.
+   * @param findItemsDto - Query parameters mapping to search, location, and filters
+   * @returns Array of items and the total count
+   */
+  async findAll(findItemsDto: FindItemsDto) {
+    return this.findItems(findItemsDto, true);
+  }
 
-  //   const items = await this.itemsRepository.findAndCount({
-  //     where: { user: { id: user.id } },
-  //     skip: skip,
-  //     take: limit,
-  //     relations: { category: { parentCategory: true } },
-  //   });
-  //   return { items: items[0], totalItems: items[1] };
-  // }
+  // =========================================================================
 
+  /**
+   * Retrieves a paginated list of all items irrespective of their status limits.
+   * @param findItemsDto - Query parameters mapping to search, location, and filters
+   * @returns Array of items and the total count
+   */
+  async findAllForAdmins(findItemsDto: FindItemsDto) {
+    return this.findItems(findItemsDto, false);
+  }
+
+  // =========================================================================
+
+  /**
+   * GET item by id.
+   * @param id - target item ID
+   * @returns Complete database record object mapping
+   */
   async findOne(id: number) {
     const item = await this.itemsRepository.findOne({
       where: { id },
@@ -312,6 +321,15 @@ export class ItemsService {
     return item;
   }
 
+  // =========================================================================
+
+  /**
+   * updates an existing item
+   * @param id - Target item ID
+   * @param updateItemDto - Payload matching properties for modification
+   * @param user - Contextual Jwt payload verifying client ownership or admin clearance
+   * @returns Modifies item
+   */
   async update(id: number, updateItemDto: UpdateItemDto, user: JwtPayloadType) {
     let item = await this.findOne(id);
     if (item.user.id !== user.id && user.userType !== UserType.ADMIN) {
@@ -333,7 +351,7 @@ export class ItemsService {
     }
     //check if category is a child category
     if (updateItemDto.categoryId) {
-      const category = await this.categoriesService.findOne(
+      const { category } = await this.categoriesService.findOne(
         updateItemDto.categoryId,
       );
       if (!category.parentCategory)
@@ -387,6 +405,14 @@ export class ItemsService {
     return item;
   }
 
+  // =========================================================================
+
+  /**
+   * remove an item from SQL database and delete its Cloudinary images.
+   * @param id - Target item ID
+   * @param user - User payload
+   * @returns  message: 'item deleted successfully'
+   */
   async remove(id: number, user: JwtPayloadType) {
     const item = await this.findOne(id);
     if (item.user.id !== user.id && user.userType !== UserType.ADMIN) {
@@ -400,13 +426,29 @@ export class ItemsService {
       );
     }
     await this.itemsRepository.remove(item);
-    return 'deleted successfully';
+    return { message: 'item deleted successfully' };
   }
 
-  getSignature(itemId: number, userId: number) {
+  // =========================================================================
+
+  /**
+   * private func Prepares signed parameters interacting with Cloudinary
+   * @param itemId - Target item ID
+   * @param userId - user ID
+   */
+  private getSignature(itemId: number, userId: number) {
     return this.cloudinaryService.generateSignature(itemId, userId);
   }
 
+  // =========================================================================
+
+  /**
+   * Synchronizes valid Cloudinary remote images with the dataBase bindings.
+   * @param itemId - Target item
+   * @param addImagesToItemDto - list of submitted cloud string IDs
+   * @param userId - user ID
+   * @returns item with successful uploads
+   */
   async addImagesToItem(
     itemId: number,
     addImagesToItemDto: AddImagesToItemDto,
@@ -447,10 +489,18 @@ export class ItemsService {
       }
     }
     await this.itemsRepository.save(item);
-    item['wrongAddedImages'] = notAddedImages;
-    return item;
+    return { item, wrongAddedImages: notAddedImages };
   }
 
+  // =========================================================================
+
+  /**
+   * Internal Reverse Geocoding processor calling MapTiler APIs directly to match coordinate datasets into semantic trees.
+   * Recursively verifies, fetches, or generates missing Countries, Regions, and Cities .
+   * @param longitude - GPS Map horizontal axis float indicator
+   * @param latitude - GPS Map vertical axis float indicator
+   * @returns Nested geographic City
+   */
   private async getLocation(longitude: number, latitude: number) {
     const responseData = await firstValueFrom(
       this.httpService.get<MapTilerResponse>(
@@ -519,9 +569,31 @@ export class ItemsService {
     return foundCity;
   }
 
+  // =========================================================================
+
+  /**
+   * Extracts the full geographic layout dictionary mappings populated within the database.
+   * @returns Relational array mapping nested Countries enclosing Regions enclosing Cities.
+   */
   getAllLocations() {
     return this.countryRepository.find({
       relations: { regions: { cities: true } },
     });
   }
 }
+
+//<deprecated> use find all with user query
+// async findItemsByUser(userId: number, page: number) {
+//   const user = await this.usersService.getUserBy(userId);
+
+//   const limit = ITEMS_PER_PAGE;
+//   const skip = limit * ((page ?? 1) - 1);
+
+//   const items = await this.itemsRepository.findAndCount({
+//     where: { user: { id: user.id } },
+//     skip: skip,
+//     take: limit,
+//     relations: { category: { parentCategory: true } },
+//   });
+//   return { items: items[0], totalItems: items[1] };
+// }

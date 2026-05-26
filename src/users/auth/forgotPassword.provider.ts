@@ -23,23 +23,13 @@ export class ForgotPasswordProvider {
     private emailQueue: Queue,
   ) {}
 
-  //todo delete safely
-  private async sendPasswordResetEmail(
-    email: string,
-    name: string,
-    url: string,
-  ) {
-    await this.mailerService.sendMail({
-      to: email,
-      subject: 'RESET PASSWORD - LIST NEST',
-      template: 'forgot-password',
-      context: {
-        name: name,
-        url: url,
-      },
-    });
-  }
+  // =========================================================================
 
+  /**
+   * Generates a password reset token and dispatches an email if the user exists.
+   * @param email - The email address requesting a password reset
+   * @returns A generic success message object
+   */
   async forgotPassword(email: string) {
     const user = await this.usersRepository.findOneBy({ email });
     if (!user)
@@ -68,8 +58,19 @@ export class ForgotPasswordProvider {
       url: resetUrl,
     });
 
-    return 'we sent a password reset link for your e-mail if you are user';
+    return {
+      message: 'we sent a password reset link for your e-mail if you are user',
+    };
   }
+
+  // =========================================================================
+
+  /**
+   * Validates the reset token and updates the user's password.
+   * @param token - The token provided in the reset email link
+   * @param newPassword - The new password string
+   * @returns A success message object
+   */
 
   async resetPassword(token: string, newPassword: string) {
     const hash = crypto.createHash('sha256').update(token).digest('hex');
@@ -90,6 +91,23 @@ export class ForgotPasswordProvider {
     await this.usersRepository.save(user);
     await this.redisClient.del(redisKey);
 
-    return 'Password has been successfully reset';
+    return { message: 'Password has been successfully reset' };
   }
 }
+
+// delete safely
+// private async sendPasswordResetEmail(
+//   email: string,
+//   name: string,
+//   url: string,
+// ) {
+//   await this.mailerService.sendMail({
+//     to: email,
+//     subject: 'RESET PASSWORD - LIST NEST',
+//     template: 'forgot-password',
+//     context: {
+//       name: name,
+//       url: url,
+//     },
+//   });
+// }

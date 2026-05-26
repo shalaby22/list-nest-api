@@ -3,11 +3,11 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../users.entity';
+import { User } from '../../users.entity';
 import { Repository } from 'typeorm';
-import { AuthProvider } from './auth.provider';
-import { RegisterDto } from '../dtos/register.dto';
-import { Profile } from '../../utils/types';
+import { AuthProvider } from '../auth.provider';
+import { RegisterDto } from '../../dtos/register.dto';
+import { Profile } from '../../../utils/types';
 import * as crypto from 'crypto';
 
 @Injectable()

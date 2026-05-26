@@ -26,31 +26,23 @@ export class VerifyEmailProvider {
     private emailQueue: Queue,
   ) {}
 
-  //todo delete safely
-  // private async sendVerificationEmail(
-  //   email: string,
-  //   name: string,
-  //   verificationUrl: string,
-  // ) {
-  //   await this.mailerService.sendMail({
-  //     to: email,
-  //     from: `<admin@nestList.com>`,
-  //     subject: 'Welcome to ListNest - Verify Your Account',
-  //     template: 'verify-email',
-  //     context: {
-  //       name: name,
-  //       url: verificationUrl,
-  //     },
-  //   });
-  // }
+  // =========================================================================
 
+  /**
+   * Generates a verification token and dispatches an email via BullMQ.
+   * @param id - The ID of the user
+   * @returns A success message object
+   */
   async getVerificationToken(id: number) {
     const user = await this.usersRepository.findOneBy({ id });
     if (!user) throw new NotFoundException('not found your users');
     if (user.isVerified)
       throw new BadRequestException('your email is already verified');
 
-    if (!user.phone) return 'you have to add a phone number first';
+    if (!user.phone)
+      throw new BadRequestException(
+        'You must add a phone number before verifying your email',
+      );
 
     const payload = { email: user.email, verify: true };
     const token = await this.jwtService.signAsync(payload, {
@@ -67,24 +59,60 @@ export class VerifyEmailProvider {
       url,
     });
     // await this.sendVerificationEmail(user.email, user.username, url);
-    return 'sent you an email check your inbox';
+    return { message: 'sent you an email check your inbox' };
   }
 
+  // =========================================================================
+
+  /**
+   * Validates the provided email verification token and updates the user's status.
+   * @param token - The JWT token received via email link
+   * @returns A success message object detailing the verification outcome
+   */
   async verifyEmail(token: string) {
     if (!token) throw new BadRequestException('no token provided');
-    const payload: { email: string; verify: boolean } =
-      await this.jwtService.verifyAsync(token, {
+
+    let payload: { email: string; verify: boolean };
+
+    try {
+      payload = await this.jwtService.verifyAsync(token, {
         secret: this.configService.get<string>('JWT_VERIFY_EMAIL_SECRET'),
       });
+    } catch (error) {
+      if (error instanceof Error && error.name === 'TokenExpiredError') {
+        throw new BadRequestException(
+          'The verification link has expired. Please request a new one.',
+        );
+      }
+      throw new BadRequestException('Invalid verification token.');
+    }
     if (!payload.verify) throw new BadRequestException('wrong token provided');
     const user = await this.usersRepository.findOneBy({ email: payload.email });
     if (!user) throw new BadRequestException('could not found your user');
     if (!user.isVerified) {
       user.isVerified = true;
       await this.usersRepository.save(user);
-      return 'your email verified successfully';
+      return { message: 'Your email has been verified successfully' };
     } else {
-      return 'your email already verified ';
+      return { message: 'your email already verified ' };
     }
   }
 }
+
+// delete safely
+// private async sendVerificationEmail(
+//   email: string,
+//   name: string,
+//   verificationUrl: string,
+// ) {
+//   await this.mailerService.sendMail({
+//     to: email,
+//     from: `<admin@nestList.com>`,
+//     subject: 'Welcome to ListNest - Verify Your Account',
+//     template: 'verify-email',
+//     context: {
+//       name: name,
+//       url: verificationUrl,
+//     },
+//   });
+// }
