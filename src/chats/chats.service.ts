@@ -32,7 +32,7 @@ export class ChatsService {
    * @returns The chat
    */
   async startConversation(userId: number, itemId: number) {
-    const item = await this.itemsService.findOne(itemId);
+    const { item } = await this.itemsService.findOne(itemId);
     if (userId === item.user.id) {
       throw new BadRequestException(`can't start conversation with your self`);
     }

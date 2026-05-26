@@ -22,8 +22,8 @@ export class WishlistService {
    * @returns The newly created wishlist record
    */
   async create(userId: number, itemId: number) {
-    const user = await this.usersService.getUserBy(userId);
-    const item = await this.itemsService.findOne(itemId);
+    const { user } = await this.usersService.getUserBy(userId);
+    const { item } = await this.itemsService.findOne(itemId);
     let wishlist = this.wishlistRepository.create({
       user,
       item,

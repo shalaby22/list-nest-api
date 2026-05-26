@@ -22,8 +22,9 @@ export class UsersProvider {
    * Get all users
    * @returns An array containing all user entities
    */
-  public getAllUsers() {
-    return this.usersRepository.find({});
+  public async getAllUsers() {
+    const users = await this.usersRepository.find({});
+    return { users };
   }
 
   // =========================================================================

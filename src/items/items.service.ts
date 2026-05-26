@@ -318,7 +318,7 @@ export class ItemsService {
       relations: { category: { parentCategory: true } },
     });
     if (!item) throw new NotFoundException('there is no item with that id');
-    return item;
+    return { item };
   }
 
   // =========================================================================
@@ -331,7 +331,7 @@ export class ItemsService {
    * @returns Modifies item
    */
   async update(id: number, updateItemDto: UpdateItemDto, user: JwtPayloadType) {
-    let item = await this.findOne(id);
+    let { item } = await this.findOne(id);
     if (item.user.id !== user.id && user.userType !== UserType.ADMIN) {
       throw new ForbiddenException(
         'you are not allowed to edit another one item',
@@ -402,7 +402,7 @@ export class ItemsService {
     }
 
     item = await this.itemsRepository.save(item);
-    return item;
+    return { item };
   }
 
   // =========================================================================
@@ -414,7 +414,7 @@ export class ItemsService {
    * @returns  message: 'item deleted successfully'
    */
   async remove(id: number, user: JwtPayloadType) {
-    const item = await this.findOne(id);
+    const { item } = await this.findOne(id);
     if (item.user.id !== user.id && user.userType !== UserType.ADMIN) {
       throw new ForbiddenException(
         'you are not allowed to remove another one item',
@@ -454,7 +454,7 @@ export class ItemsService {
     addImagesToItemDto: AddImagesToItemDto,
     userId: number,
   ) {
-    const item = await this.findOne(itemId);
+    const { item } = await this.findOne(itemId);
     if (item.user.id !== userId) {
       throw new ForbiddenException(
         'you are not allowed to add images to another one item',
@@ -576,9 +576,10 @@ export class ItemsService {
    * @returns Relational array mapping nested Countries enclosing Regions enclosing Cities.
    */
   getAllLocations() {
-    return this.countryRepository.find({
+    const locations = this.countryRepository.find({
       relations: { regions: { cities: true } },
     });
+    return { locations };
   }
 }
 
