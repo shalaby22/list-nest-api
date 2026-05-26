@@ -24,18 +24,16 @@ export class AllExceptionsFilter implements ExceptionFilter {
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
     let message = 'Internal server error';
-
-    if (exception instanceof HttpException) {
-      const res = exception.getResponse() as { message?: string | string[] };
-      message = Array.isArray(res.message)
-        ? res.message.join(', ')
-        : res.message || exception.message;
-    } else if (exception instanceof Error) {
-      message = exception.message;
-    }
     const request = ctx.getRequest<Request>();
     const method = httpAdapter.getRequestMethod(request) as string;
     const url = httpAdapter.getRequestUrl(request) as string;
+
+    if (exception instanceof HttpException) {
+      const res = exception.getResponse() as { message?: string };
+      message = res.message || exception.message;
+    } else if (exception instanceof Error) {
+      message = exception.message;
+    }
 
     if (httpStatus === HttpStatus.INTERNAL_SERVER_ERROR) {
       const error = exception as Error;
@@ -50,11 +48,24 @@ export class AllExceptionsFilter implements ExceptionFilter {
       );
     }
 
-    const responseBody = {
-      statusCode: httpStatus,
-      path: url,
-      message: message,
-    };
+    let responseBody: any;
+
+    if (
+      httpStatus >= HttpStatus.BAD_REQUEST &&
+      httpStatus < HttpStatus.INTERNAL_SERVER_ERROR
+    ) {
+      responseBody = {
+        status: 'fail',
+        data: {
+          details: message,
+        },
+      };
+    } else {
+      responseBody = {
+        status: 'error',
+        message: message,
+      };
+    }
 
     httpAdapter.reply(ctx.getResponse<Response>(), responseBody, httpStatus);
   }

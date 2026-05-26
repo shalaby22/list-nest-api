@@ -50,3 +50,8 @@ export interface EmailJobData {
   name: string;
   url: string;
 }
+
+export interface JSendSuccess<T> {
+  status: 'success';
+  data: T;
+}

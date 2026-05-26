@@ -19,7 +19,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { dataSourceOptions } from '../db/data.source';
 import { config } from 'dotenv';
 import { getRedisConnectionOptions } from './redis/redis.config';
-import { AllExceptionsFilter } from './utils/all-exceptions.filter';
+import { AllExceptionsFilter } from './utils/filters/all-exceptions.filter';
 import { envValidationSchema } from './utils/env.validation';
 import { RedisModule } from './redis/redis.module';
 config({ path: '.env' });
