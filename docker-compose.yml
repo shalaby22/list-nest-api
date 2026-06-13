@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: list_nest_api
+    restart: always
+    env_file:
+      - .env
+    expose:
+      - "3000"
+    networks:
+      - list-nest-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  nginx:
+    image: nginx:alpine
+    container_name: list_nest_nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - webroot:/var/www/html
+    depends_on:
+      - api
+    networks:
+      - list-nest-network
+
+volumes:
+  webroot:
+
+networks:
+  list-nest-network:
+    driver: bridge

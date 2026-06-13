@@ -6,6 +6,7 @@
     "setweight",
     "srid",
     "trgm",
-    "tsquery"
+    "tsquery",
+    "webroot"
   ]
 }

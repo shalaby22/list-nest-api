@@ -15,7 +15,6 @@ import { Message } from '../chats/entities/message.entity';
 
 @Entity()
 export class User {
-  [x: string]: any;
   @PrimaryGeneratedColumn()
   id: number;
 
