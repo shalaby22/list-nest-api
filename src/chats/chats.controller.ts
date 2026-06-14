@@ -48,7 +48,7 @@ After calling this HTTP endpoint to initialize or retrieve a chat session, you m
   \`\`\`
 *(For client libraries like socket.io-client)*:
   \`\`\`javascript
-  const socket = io("wss://list-nest-api-production.up.railway.app/api/socket/chats", {
+  const socket = io("wss://list-nest-api.duckdns.org//api/socket/chats", {
     extraHeaders: {
       Authorization: "Bearer YOUR_ACCESS_TOKEN"
     }

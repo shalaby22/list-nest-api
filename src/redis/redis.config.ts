@@ -21,6 +21,9 @@ export const getRedisConnectionOptions = (
       port: Number(port),
       password,
       username: username,
+      tls: {
+        rejectUnauthorized: false,
+      },
       ...(isBull && { maxRetriesPerRequest: null }),
       keepAlive: 15000,
       connectTimeout: 30000,

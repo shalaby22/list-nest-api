@@ -5,8 +5,10 @@
 ![Redis](https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white)
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
 ![Swagger](https://img.shields.io/badge/-Swagger-%23Clojure?style=for-the-badge&logo=swagger&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-%23FF9900.svg?style=for-the-badge&logo=amazon-aws&logoColor=white)
+![Nginx](https://img.shields.io/badge/nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white)
 
-🚀 **Live Server & API Documentation:** [Click here to test the live API](https://list-nest-api-production.up.railway.app/docs)
+🚀 **Live Server & API Documentation:** [Click here to test the live API](https://list-nest-api.duckdns.org/docs)
 
 > **A comprehensive Dubizzle-like API** built for modern classifieds and marketplace platforms.
 > A robust, highly optimized, and scalable backend architecture for a **Dubizzle-like** marketplace/listing platform. List Nest features advanced geospatial and full-text search, secure multi-device authentication, real-time messaging, and efficient background processing.
@@ -105,7 +107,7 @@ The database is carefully designed to support complex relationships, hierarchica
 - **Security Auth:** Passport.js (Local, JWT, Google OAuth20), bcrypt, HTTP-Only Cookies
 - **API Security:** Custom WebSocket Guards, API Rate Limiting (Throttler)
 - **Documentation:** Swagger UI (OpenAPI) - Single source of truth for REST and WebSockets.
-- **DevOps:** Docker (Containerization), Railway (Production Deployment)
+- **DevOps & Infrastructure:** Docker & Docker Compose, Nginx (Reverse Proxy & SSL), AWS EC2 (Compute), AWS RDS (PostgreSQL Managed Database), AWS ElastiCache (Redis)
 
 ---
 
@@ -115,7 +117,7 @@ The API is fully documented using Swagger UI, serving as the single source of tr
 
 **🌍 Live Environment:**
 You can access and interact with the live deployed API documentation here:
-👉 **[List Nest Live API Docs](https://list-nest-api-production.up.railway.app/docs)**
+👉 **[List Nest Live API Docs](https://list-nest-api.duckdns.org/docs)**
 
 **💻 Local Environment:**
 If you are running the application locally, the documentation is available at:
