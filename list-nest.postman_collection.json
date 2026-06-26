@@ -6071,7 +6071,7 @@
                   }
                 },
                 "url": {
-                  "raw": "{{url}}/api/items?page=1&country=1&search=ben",
+                  "raw": "{{url}}/api/items?page=1",
                   "host": [
                     "{{url}}"
                   ],
@@ -6122,7 +6122,7 @@
                     {
                       "key": "country",
                       "value": "1",
-                      "type": "text"
+                      "disabled": true
                     },
                     {
                       "key": "maxPrice",
@@ -6138,7 +6138,8 @@
                     },
                     {
                       "key": "search",
-                      "value": "ben"
+                      "value": "ben",
+                      "disabled": true
                     }
                   ]
                 }
@@ -6152,16 +6153,8 @@
                   "value": "*"
                 },
                 {
-                  "key": "Content-Length",
-                  "value": "3015"
-                },
-                {
                   "key": "Content-Security-Policy",
                   "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
-                },
-                {
-                  "key": "Content-Type",
-                  "value": "application/json; charset=utf-8"
                 },
                 {
                   "key": "Cross-Origin-Opener-Policy",
@@ -6172,24 +6165,12 @@
                   "value": "same-origin"
                 },
                 {
-                  "key": "Date",
-                  "value": "Tue, 26 May 2026 20:52:06 GMT"
-                },
-                {
-                  "key": "Etag",
-                  "value": "W/\"bc7-16OwyOJYnVxrlHk3jR2cFUzsSoQ\""
-                },
-                {
                   "key": "Origin-Agent-Cluster",
                   "value": "?1"
                 },
                 {
                   "key": "Referrer-Policy",
                   "value": "no-referrer"
-                },
-                {
-                  "key": "Server",
-                  "value": "railway-edge"
                 },
                 {
                   "key": "Strict-Transport-Security",
@@ -6200,7 +6181,7 @@
                   "value": "nosniff"
                 },
                 {
-                  "key": "X-Dns-Prefetch-Control",
+                  "key": "X-DNS-Prefetch-Control",
                   "value": "off"
                 },
                 {
@@ -6216,56 +6197,72 @@
                   "value": "none"
                 },
                 {
-                  "key": "X-Railway-Edge",
-                  "value": "railway/europe-west4-drams3a"
+                  "key": "X-XSS-Protection",
+                  "value": "0"
                 },
                 {
-                  "key": "X-Railway-Request-Id",
-                  "value": "i1FUCc5ySoq0qcV6nTga3g"
-                },
-                {
-                  "key": "X-Ratelimit-Limit-Long",
-                  "value": "30"
-                },
-                {
-                  "key": "X-Ratelimit-Limit-Medium",
-                  "value": "10"
-                },
-                {
-                  "key": "X-Ratelimit-Limit-Short",
+                  "key": "X-RateLimit-Limit-short",
                   "value": "3"
                 },
                 {
-                  "key": "X-Ratelimit-Remaining-Long",
-                  "value": "28"
-                },
-                {
-                  "key": "X-Ratelimit-Remaining-Medium",
-                  "value": "9"
-                },
-                {
-                  "key": "X-Ratelimit-Remaining-Short",
+                  "key": "X-RateLimit-Remaining-short",
                   "value": "2"
                 },
                 {
-                  "key": "X-Ratelimit-Reset-Long",
-                  "value": "35"
-                },
-                {
-                  "key": "X-Ratelimit-Reset-Medium",
-                  "value": "10"
-                },
-                {
-                  "key": "X-Ratelimit-Reset-Short",
+                  "key": "X-RateLimit-Reset-short",
                   "value": "1"
                 },
                 {
-                  "key": "X-Xss-Protection",
-                  "value": "0"
+                  "key": "X-RateLimit-Limit-medium",
+                  "value": "10"
+                },
+                {
+                  "key": "X-RateLimit-Remaining-medium",
+                  "value": "7"
+                },
+                {
+                  "key": "X-RateLimit-Reset-medium",
+                  "value": "7"
+                },
+                {
+                  "key": "X-RateLimit-Limit-long",
+                  "value": "30"
+                },
+                {
+                  "key": "X-RateLimit-Remaining-long",
+                  "value": "26"
+                },
+                {
+                  "key": "X-RateLimit-Reset-long",
+                  "value": "38"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "894"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"37e-sm2jvjjj1wtfw16Q9QnQnbRMlQo\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Fri, 26 Jun 2026 15:10:39 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
                 }
               ],
               "cookie": [],
-              "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"items\": [\n            {\n                \"id\": 7,\n                \"title\": \"benha2\",\n                \"description\": \"mm sfa  sanlfjasn asf sa\",\n                \"status\": \"active\",\n                \"price\": 65,\n                \"point\": {\n                    \"type\": \"Point\",\n                    \"coordinates\": [\n                        31.2001,\n                        29.9187\n                    ]\n                },\n                \"createdAt\": \"2026-05-26T15:23:05.493Z\",\n                \"updatedAt\": \"2026-05-26T15:23:05.493Z\",\n                \"user\": {\n                    \"id\": 3,\n                    \"email\": \"ads1@ha.com\",\n                    \"phone\": \"010203255\",\n                    \"username\": \"aqwer23\",\n                    \"firstName\": \"asdq\",\n                    \"lastName\": \"asf\",\n                    \"userType\": \"admin\",\n                    \"isVerified\": true,\n                    \"createdAt\": \"2026-05-18T09:27:51.645Z\",\n                    \"updatedAt\": \"2026-05-26T18:37:19.991Z\"\n                },\n                \"category\": {\n                    \"id\": 3,\n                    \"title\": \"child\",\n                    \"description\": \"adsasf\",\n                    \"createdAt\": \"2026-05-19T06:21:47.439Z\",\n                    \"updatedAt\": \"2026-05-19T06:21:47.439Z\",\n                    \"parentCategory\": {\n                        \"id\": 2,\n                        \"title\": \"parefnt22a\",\n                        \"description\": \"adsasf\",\n                        \"createdAt\": \"2026-05-19T06:21:35.030Z\",\n                        \"updatedAt\": \"2026-05-19T06:21:35.030Z\"\n                    }\n                },\n                \"city\": {\n                    \"id\": 2,\n                    \"city\": \"Abo Sir Village\",\n                    \"createdAt\": \"2026-05-19T18:47:23.432Z\",\n                    \"region\": {\n                        \"id\": 2,\n                        \"region\": \"Giza\",\n                        \"createdAt\": \"2026-05-19T18:47:23.432Z\",\n                        \"country\": {\n                            \"id\": 1,\n                            \"country\": \"Egypt\",\n                            \"createdAt\": \"2026-05-19T06:22:16.704Z\"\n                        }\n                    }\n                },\n                \"images\": []\n            },\n            {\n                \"id\": 6,\n                \"title\": \"benha2\",\n                \"description\": \"mm sfa  sanlfjasn asf sa\",\n                \"status\": \"active\",\n                \"price\": 65,\n                \"point\": {\n                    \"type\": \"Point\",\n                    \"coordinates\": [\n                        31.2001,\n                        29.9187\n                    ]\n                },\n                \"createdAt\": \"2026-05-26T15:22:46.786Z\",\n                \"updatedAt\": \"2026-05-26T15:22:46.786Z\",\n                \"user\": {\n                    \"id\": 3,\n                    \"email\": \"ads1@ha.com\",\n                    \"phone\": \"010203255\",\n                    \"username\": \"aqwer23\",\n                    \"firstName\": \"asdq\",\n                    \"lastName\": \"asf\",\n                    \"userType\": \"admin\",\n                    \"isVerified\": true,\n                    \"createdAt\": \"2026-05-18T09:27:51.645Z\",\n                    \"updatedAt\": \"2026-05-26T18:37:19.991Z\"\n                },\n                \"category\": {\n                    \"id\": 3,\n                    \"title\": \"child\",\n                    \"description\": \"adsasf\",\n                    \"createdAt\": \"2026-05-19T06:21:47.439Z\",\n                    \"updatedAt\": \"2026-05-19T06:21:47.439Z\",\n                    \"parentCategory\": {\n                        \"id\": 2,\n                        \"title\": \"parefnt22a\",\n                        \"description\": \"adsasf\",\n                        \"createdAt\": \"2026-05-19T06:21:35.030Z\",\n                        \"updatedAt\": \"2026-05-19T06:21:35.030Z\"\n                    }\n                },\n                \"city\": {\n                    \"id\": 2,\n                    \"city\": \"Abo Sir Village\",\n                    \"createdAt\": \"2026-05-19T18:47:23.432Z\",\n                    \"region\": {\n                        \"id\": 2,\n                        \"region\": \"Giza\",\n                        \"createdAt\": \"2026-05-19T18:47:23.432Z\",\n                        \"country\": {\n                            \"id\": 1,\n                            \"country\": \"Egypt\",\n                            \"createdAt\": \"2026-05-19T06:22:16.704Z\"\n                        }\n                    }\n                },\n                \"images\": []\n            },\n            {\n                \"id\": 5,\n                \"title\": \"benha2\",\n                \"description\": \"mm sfa  sanlfjasn asf sa\",\n                \"status\": \"active\",\n                \"price\": 65,\n                \"point\": {\n                    \"type\": \"Point\",\n                    \"coordinates\": [\n                        31.2001,\n                        29.9187\n                    ]\n                },\n                \"createdAt\": \"2026-05-24T18:04:26.586Z\",\n                \"updatedAt\": \"2026-05-26T15:35:19.230Z\",\n                \"user\": {\n                    \"id\": 3,\n                    \"email\": \"ads1@ha.com\",\n                    \"phone\": \"010203255\",\n                    \"username\": \"aqwer23\",\n                    \"firstName\": \"asdq\",\n                    \"lastName\": \"asf\",\n                    \"userType\": \"admin\",\n                    \"isVerified\": true,\n                    \"createdAt\": \"2026-05-18T09:27:51.645Z\",\n                    \"updatedAt\": \"2026-05-26T18:37:19.991Z\"\n                },\n                \"category\": {\n                    \"id\": 3,\n                    \"title\": \"child\",\n                    \"description\": \"adsasf\",\n                    \"createdAt\": \"2026-05-19T06:21:47.439Z\",\n                    \"updatedAt\": \"2026-05-19T06:21:47.439Z\",\n                    \"parentCategory\": {\n                        \"id\": 2,\n                        \"title\": \"parefnt22a\",\n                        \"description\": \"adsasf\",\n                        \"createdAt\": \"2026-05-19T06:21:35.030Z\",\n                        \"updatedAt\": \"2026-05-19T06:21:35.030Z\"\n                    }\n                },\n                \"city\": {\n                    \"id\": 2,\n                    \"city\": \"Abo Sir Village\",\n                    \"createdAt\": \"2026-05-19T18:47:23.432Z\",\n                    \"region\": {\n                        \"id\": 2,\n                        \"region\": \"Giza\",\n                        \"createdAt\": \"2026-05-19T18:47:23.432Z\",\n                        \"country\": {\n                            \"id\": 1,\n                            \"country\": \"Egypt\",\n                            \"createdAt\": \"2026-05-19T06:22:16.704Z\"\n                        }\n                    }\n                },\n                \"images\": []\n            }\n        ],\n        \"totalItems\": 3\n    }\n}"
+              "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"items\": [\n            {\n                \"id\": 10,\n                \"title\": \"benha5\",\n                \"description\": \"mm sfa  sanlfjasn asf sa\",\n                \"status\": \"active\",\n                \"price\": 65,\n                \"point\": {\n                    \"type\": \"Point\",\n                    \"coordinates\": [\n                        31.2001,\n                        29.9187\n                    ]\n                },\n                \"createdAt\": \"2026-06-26T12:08:53.513Z\",\n                \"updatedAt\": \"2026-06-26T12:08:53.513Z\",\n                \"user\": {\n                    \"id\": 29,\n                    \"username\": \"shalaby3\",\n                    \"firstName\": \"mohamed\",\n                    \"lastName\": \"shalaby\"\n                },\n                \"category\": {\n                    \"id\": 3,\n                    \"title\": \"child\",\n                    \"description\": \"adsasf\",\n                    \"createdAt\": \"2026-05-19T03:21:47.439Z\",\n                    \"updatedAt\": \"2026-05-19T03:21:47.439Z\",\n                    \"parentCategory\": {\n                        \"id\": 2,\n                        \"title\": \"parefnt22a\",\n                        \"description\": \"adsasf\",\n                        \"createdAt\": \"2026-05-19T03:21:35.030Z\",\n                        \"updatedAt\": \"2026-05-19T03:21:35.030Z\"\n                    }\n                },\n                \"city\": {\n                    \"id\": 2,\n                    \"city\": \"Abo Sir Village\",\n                    \"createdAt\": \"2026-05-19T15:47:23.432Z\",\n                    \"region\": {\n                        \"id\": 2,\n                        \"region\": \"Giza\",\n                        \"createdAt\": \"2026-05-19T15:47:23.432Z\",\n                        \"country\": {\n                            \"id\": 1,\n                            \"country\": \"Egypt\",\n                            \"createdAt\": \"2026-05-19T03:22:16.704Z\"\n                        }\n                    }\n                },\n                \"images\": []\n            }\n        ],\n        \"totalItems\": 1\n    }\n}"
             }
           ]
         },
@@ -6609,14 +6606,14 @@
               }
             },
             "url": {
-              "raw": "{{url}}/api/items/7",
+              "raw": "{{url}}/api/items/10",
               "host": [
                 "{{url}}"
               ],
               "path": [
                 "api",
                 "items",
-                "7"
+                "10"
               ]
             }
           },
@@ -6636,14 +6633,14 @@
                   }
                 },
                 "url": {
-                  "raw": "{{url}}/api/items/7",
+                  "raw": "{{url}}/api/items/10",
                   "host": [
                     "{{url}}"
                   ],
                   "path": [
                     "api",
                     "items",
-                    "7"
+                    "10"
                   ]
                 }
               },
@@ -6656,16 +6653,8 @@
                   "value": "*"
                 },
                 {
-                  "key": "Content-Length",
-                  "value": "1023"
-                },
-                {
                   "key": "Content-Security-Policy",
                   "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
-                },
-                {
-                  "key": "Content-Type",
-                  "value": "application/json; charset=utf-8"
                 },
                 {
                   "key": "Cross-Origin-Opener-Policy",
@@ -6676,24 +6665,12 @@
                   "value": "same-origin"
                 },
                 {
-                  "key": "Date",
-                  "value": "Tue, 26 May 2026 21:11:16 GMT"
-                },
-                {
-                  "key": "Etag",
-                  "value": "W/\"3ff-Mbc39cqsLU1+oJL98qveDJOVl0A\""
-                },
-                {
                   "key": "Origin-Agent-Cluster",
                   "value": "?1"
                 },
                 {
                   "key": "Referrer-Policy",
                   "value": "no-referrer"
-                },
-                {
-                  "key": "Server",
-                  "value": "railway-edge"
                 },
                 {
                   "key": "Strict-Transport-Security",
@@ -6704,7 +6681,7 @@
                   "value": "nosniff"
                 },
                 {
-                  "key": "X-Dns-Prefetch-Control",
+                  "key": "X-DNS-Prefetch-Control",
                   "value": "off"
                 },
                 {
@@ -6720,56 +6697,72 @@
                   "value": "none"
                 },
                 {
-                  "key": "X-Railway-Edge",
-                  "value": "railway/europe-west4-drams3a"
+                  "key": "X-XSS-Protection",
+                  "value": "0"
                 },
                 {
-                  "key": "X-Railway-Request-Id",
-                  "value": "ZwsVOM2QSi6C1x8k63j4Ww"
-                },
-                {
-                  "key": "X-Ratelimit-Limit-Long",
-                  "value": "30"
-                },
-                {
-                  "key": "X-Ratelimit-Limit-Medium",
-                  "value": "10"
-                },
-                {
-                  "key": "X-Ratelimit-Limit-Short",
+                  "key": "X-RateLimit-Limit-short",
                   "value": "3"
                 },
                 {
-                  "key": "X-Ratelimit-Remaining-Long",
-                  "value": "29"
-                },
-                {
-                  "key": "X-Ratelimit-Remaining-Medium",
-                  "value": "9"
-                },
-                {
-                  "key": "X-Ratelimit-Remaining-Short",
+                  "key": "X-RateLimit-Remaining-short",
                   "value": "2"
                 },
                 {
-                  "key": "X-Ratelimit-Reset-Long",
-                  "value": "60"
-                },
-                {
-                  "key": "X-Ratelimit-Reset-Medium",
-                  "value": "10"
-                },
-                {
-                  "key": "X-Ratelimit-Reset-Short",
+                  "key": "X-RateLimit-Reset-short",
                   "value": "1"
                 },
                 {
-                  "key": "X-Xss-Protection",
-                  "value": "0"
+                  "key": "X-RateLimit-Limit-medium",
+                  "value": "10"
+                },
+                {
+                  "key": "X-RateLimit-Remaining-medium",
+                  "value": "9"
+                },
+                {
+                  "key": "X-RateLimit-Reset-medium",
+                  "value": "10"
+                },
+                {
+                  "key": "X-RateLimit-Limit-long",
+                  "value": "30"
+                },
+                {
+                  "key": "X-RateLimit-Remaining-long",
+                  "value": "29"
+                },
+                {
+                  "key": "X-RateLimit-Reset-long",
+                  "value": "60"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "876"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"36c-jPV6kuZWj5n+Kphva23pvvP3CsE\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Fri, 26 Jun 2026 15:25:02 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
                 }
               ],
               "cookie": [],
-              "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"item\": {\n            \"id\": 7,\n            \"title\": \"benha2\",\n            \"description\": \"mm sfa  sanlfjasn asf sa\",\n            \"status\": \"active\",\n            \"price\": 65,\n            \"point\": {\n                \"type\": \"Point\",\n                \"coordinates\": [\n                    31.2001,\n                    29.9187\n                ]\n            },\n            \"createdAt\": \"2026-05-26T15:23:05.493Z\",\n            \"updatedAt\": \"2026-05-26T15:23:05.493Z\",\n            \"user\": {\n                \"id\": 3,\n                \"email\": \"ads1@ha.com\",\n                \"phone\": \"010203255\",\n                \"username\": \"aqwer23\",\n                \"firstName\": \"asdq\",\n                \"lastName\": \"asf\",\n                \"userType\": \"admin\",\n                \"isVerified\": true,\n                \"createdAt\": \"2026-05-18T09:27:51.645Z\",\n                \"updatedAt\": \"2026-05-26T18:37:19.991Z\"\n            },\n            \"category\": {\n                \"id\": 3,\n                \"title\": \"child\",\n                \"description\": \"adsasf\",\n                \"createdAt\": \"2026-05-19T06:21:47.439Z\",\n                \"updatedAt\": \"2026-05-19T06:21:47.439Z\",\n                \"parentCategory\": {\n                    \"id\": 2,\n                    \"title\": \"parefnt22a\",\n                    \"description\": \"adsasf\",\n                    \"createdAt\": \"2026-05-19T06:21:35.030Z\",\n                    \"updatedAt\": \"2026-05-19T06:21:35.030Z\"\n                }\n            },\n            \"city\": {\n                \"id\": 2,\n                \"city\": \"Abo Sir Village\",\n                \"createdAt\": \"2026-05-19T18:47:23.432Z\",\n                \"region\": {\n                    \"id\": 2,\n                    \"region\": \"Giza\",\n                    \"createdAt\": \"2026-05-19T18:47:23.432Z\",\n                    \"country\": {\n                        \"id\": 1,\n                        \"country\": \"Egypt\",\n                        \"createdAt\": \"2026-05-19T06:22:16.704Z\"\n                    }\n                }\n            },\n            \"images\": []\n        }\n    }\n}"
+              "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"item\": {\n            \"id\": 10,\n            \"title\": \"benha5\",\n            \"description\": \"mm sfa  sanlfjasn asf sa\",\n            \"status\": \"active\",\n            \"price\": 65,\n            \"point\": {\n                \"type\": \"Point\",\n                \"coordinates\": [\n                    31.2001,\n                    29.9187\n                ]\n            },\n            \"createdAt\": \"2026-06-26T12:08:53.513Z\",\n            \"updatedAt\": \"2026-06-26T12:08:53.513Z\",\n            \"user\": {\n                \"id\": 29,\n                \"username\": \"shalaby3\",\n                \"firstName\": \"mohamed\",\n                \"lastName\": \"shalaby\"\n            },\n            \"category\": {\n                \"id\": 3,\n                \"title\": \"child\",\n                \"description\": \"adsasf\",\n                \"createdAt\": \"2026-05-19T03:21:47.439Z\",\n                \"updatedAt\": \"2026-05-19T03:21:47.439Z\",\n                \"parentCategory\": {\n                    \"id\": 2,\n                    \"title\": \"parefnt22a\",\n                    \"description\": \"adsasf\",\n                    \"createdAt\": \"2026-05-19T03:21:35.030Z\",\n                    \"updatedAt\": \"2026-05-19T03:21:35.030Z\"\n                }\n            },\n            \"city\": {\n                \"id\": 2,\n                \"city\": \"Abo Sir Village\",\n                \"createdAt\": \"2026-05-19T15:47:23.432Z\",\n                \"region\": {\n                    \"id\": 2,\n                    \"region\": \"Giza\",\n                    \"createdAt\": \"2026-05-19T15:47:23.432Z\",\n                    \"country\": {\n                        \"id\": 1,\n                        \"country\": \"Egypt\",\n                        \"createdAt\": \"2026-05-19T03:22:16.704Z\"\n                    }\n                }\n            },\n            \"images\": []\n        }\n    }\n}"
             }
           ]
         },

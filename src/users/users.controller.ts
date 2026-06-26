@@ -302,11 +302,13 @@ export class UsersController {
 
   /**
    * [GET] /api/users/:id
-   * Access: Public
+   * Access: Users
    * Description: Get the public profile data of any specific user by ID
    */
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get any user profile by ID' })
   @Get(':id')
-  @ApiOperation({ summary: 'Get any user profile by ID (Public)' })
+  @UseGuards(JwtAuthGuard)
   public getUser(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.getUserBy(id);
   }

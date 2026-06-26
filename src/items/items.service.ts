@@ -122,7 +122,13 @@ export class ItemsService {
       .createQueryBuilder('item')
       .leftJoinAndSelect('item.category', 'category')
       .leftJoinAndSelect('category.parentCategory', 'parentCategory')
-      .leftJoinAndSelect('item.user', 'user')
+      .leftJoin('item.user', 'user')
+      .addSelect([
+        'user.id',
+        'user.username',
+        'user.firstName',
+        'user.lastName',
+      ])
       .leftJoinAndSelect('item.city', 'city')
       .leftJoinAndSelect('city.region', 'region')
       .leftJoinAndSelect('region.country', 'country')
@@ -313,11 +319,26 @@ export class ItemsService {
    * @returns Complete database record object mapping
    */
   async findOne(id: number) {
-    const item = await this.itemsRepository.findOne({
-      where: { id },
-      relations: { category: { parentCategory: true } },
-    });
+    const item = await this.itemsRepository
+      .createQueryBuilder('item')
+      .leftJoinAndSelect('item.category', 'category')
+      .leftJoinAndSelect('category.parentCategory', 'parentCategory')
+      .leftJoin('item.user', 'user')
+      .addSelect([
+        'user.id',
+        'user.username',
+        'user.firstName',
+        'user.lastName',
+      ])
+      .leftJoinAndSelect('item.city', 'city')
+      .leftJoinAndSelect('city.region', 'region')
+      .leftJoinAndSelect('region.country', 'country')
+      .leftJoinAndSelect('item.images', 'imageItem')
+      .where('item.id = :id', { id })
+      .getOne();
+
     if (!item) throw new NotFoundException('there is no item with that id');
+
     return { item };
   }
 
