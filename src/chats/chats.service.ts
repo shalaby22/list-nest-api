@@ -212,7 +212,11 @@ export class ChatsService {
       throw new Error('not found this conversation');
     }
 
-    if (chat.buyer.id !== userId && chat.seller.id !== userId) {
+    try {
+      if (chat.buyer.id !== userId && chat.seller.id !== userId) {
+        throw new Error();
+      }
+    } catch (_e) {
       throw new Error('not allowed to reach this chat');
     }
 

@@ -8,7 +8,7 @@ import {
 } from '@nestjs/websockets';
 import { ChatsService } from './chats.service';
 import { Server, Socket } from 'socket.io';
-import { ParseIntPipe, UseGuards } from '@nestjs/common';
+import { UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { WsJwtGuard } from '../users/auth/guards/ws-jwt-auth.guard';
 import type { AuthenticatedSocket } from '../utils/interfaces';
 import { WsThrottlerGuard } from '../users/auth/guards/ws-throttler.guard';
@@ -16,6 +16,8 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayloadType } from '../utils/types';
 import { extractJwtFromSocket } from '../users/auth/strategies/ws-jwt.strategy';
+import { SendMessageDto } from './dto/send-message.dto';
+import { JoinConversationDto } from './dto/join-conversation.dto';
 
 @WebSocketGateway({
   namespace: '/api/socket/chats',
@@ -80,18 +82,20 @@ export class ChatsGateway {
    * WS Event: join_conversation
    * Description: Registers a client into a room representing a chat.
    */
+  @UsePipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      exceptionFactory: (errors) => {
+        return new WsException(errors);
+      },
+    }),
+  )
   @SubscribeMessage('join_conversation')
   async handleJoinConversation(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody(
-      'chatId',
-      new ParseIntPipe({
-        exceptionFactory: (error) => {
-          throw new WsException(error);
-        },
-      }),
-    )
-    chatId: number,
+    @MessageBody() { chatId }: JoinConversationDto,
   ) {
     try {
       const userId = client.user.id;
@@ -111,10 +115,20 @@ export class ChatsGateway {
    * WS Event: send_message
    * Description: Commits real-time messages to storage and alerts to room listeners and user notification channels.
    */
+  @UsePipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      exceptionFactory: (errors) => {
+        return new WsException(errors);
+      },
+    }),
+  )
   @SubscribeMessage('send_message')
   async handleSendMessage(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() payload: { chatId: number; content: string },
+    @MessageBody() payload: SendMessageDto,
   ) {
     try {
       const senderId = client.user.id;
