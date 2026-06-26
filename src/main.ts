@@ -23,17 +23,6 @@ async function bootstrap() {
       `
 > A robust, highly optimized, and scalable backend architecture for a Dubizzle-like marketplace.
 
-### 🔑 Test Credentials (Admin Access)
-To test Admin-only endpoints, you can log in using the following credentials to obtain an Access Token:
-
-| Role  | Email                  | Password      |
-| :---  | :---                   | :---          |
-| Admin | **admin@listnest.com** | **Admin@123** |
-
-*Steps to authenticate:*
-1. Use the \`/auth/login\` endpoint with the credentials above.
-2. Copy the \`accessToken\` from the response.
-3. Click the **Authorize** button at the top of this page and paste the token.
     `,
     )
     .setVersion('1.0')
