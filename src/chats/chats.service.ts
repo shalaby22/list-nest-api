@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Chat } from './entities/chat.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { RawChatData } from '../utils/interfaces';
 import { CHATS_PER_PAGE, MESSAGES_PER_PAGE } from '../utils/constants';
 
@@ -21,6 +21,7 @@ export class ChatsService {
     private messageRepository: Repository<Message>,
     private itemsService: ItemsService,
     private usersService: UsersService,
+    private dataSource: DataSource,
   ) {}
 
   // =========================================================================
@@ -183,14 +184,21 @@ export class ChatsService {
     receiverId: number,
     content: string,
   ) {
-    let message = this.messageRepository.create({
-      chat: { id: chatId },
-      sender: { id: senderId },
-      receiver: { id: receiverId },
-      content,
+    const savedMessage = await this.dataSource.transaction(async (manager) => {
+      const message = manager.create(Message, {
+        chat: { id: chatId },
+        sender: { id: senderId },
+        receiver: { id: receiverId },
+        content,
+      });
+      const resultMessage = await manager.save(message);
+
+      await manager.update(Chat, { id: chatId }, { updatedAt: new Date() });
+
+      return resultMessage;
     });
-    message = await this.messageRepository.save(message);
-    return { message };
+
+    return { message: savedMessage };
   }
 
   // =========================================================================
